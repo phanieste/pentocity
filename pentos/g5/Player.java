@@ -1,11 +1,16 @@
-package pentos.g0;
+package pentos.g5;
 
 import pentos.sim.Cell;
 import pentos.sim.Building;
 import pentos.sim.Land;
 import pentos.sim.Move;
 
+import pentos.g5.util.*;
+
 import java.util.*;
+
+import pentos.g5.util.BuildingUtil;
+import pentos.g5.util.Pair;
 
 public class Player implements pentos.sim.Player {
 
@@ -16,7 +21,73 @@ public class Player implements pentos.sim.Player {
 
     }
 
+    private Move playResidence(Building request, Land land) {
+        // Build a residence
+
+        BuildingUtil bu = new BuildingUtil( request );
+        LandUtil lu = new LandUtil( land );
+        Pair[] hull = bu.Hull();
+        Pair start = lu.getCup(bu);
+
+        Cell startCell = new Cell(start.i, start.j);
+
+        int rotation = 0;
+
+        System.out.println( "Build:" + hull[0] + hull[1]);
+        System.out.println( request.toString1() );
+        System.out.println( "At:" + start );
+
+
+        Set<Cell> shiftedCells = new HashSet<Cell>();
+        for (Cell x : request.rotations()[rotation]){
+            shiftedCells.add(new Cell(x.i+startCell.i, x.j+startCell.j));
+        }            // build a road to connect this building to perimeter
+        Set<Cell> roadCells = findShortestRoad(shiftedCells, land);
+
+
+        Move move = new Move(true, request, startCell, rotation,
+            new HashSet<Cell>(), new HashSet<Cell>(), new HashSet<Cell>());
+        move.road = roadCells;
+
+
+
+        // for(Building r : rotations ) {
+        //     // System.out.println( "Rotation:\n" +r.toString1() );
+        // }
+
+        // Locate the location of first spiral where this home is possible.
+        // * cannot build on a reserved piece of road that connects the inside
+
+        // Build Connecting Road to location
+
+        // Try to optimize with parks and ponds
+        // * Do we need to put parks and ponds before the residence is built?
+
+        return move;
+    }
+    private Move playFactory(Building request, Land land) {
+        // Build a factory
+        Move move = new Move (false);
+
+        // Locate the location of first outward spiral where this Factory is possible.
+
+        // Build Connecting Road to location
+
+        return move;
+    }
+
     public Move play(Building request, Land land) {
+
+        if (request.type == Building.Type.RESIDENCE) {
+            try {
+                return playResidence(request, land);
+            } catch (Exception e) {
+                System.out.println("Some Error!");
+            }
+        } else if (request.type == Building.Type.FACTORY) {
+            playFactory(request, land);
+        }
+
         // find all valid building locations and orientations
         ArrayList <Move> moves = new ArrayList <Move> ();
         for (int i = 0 ; i < land.side ; i++)
@@ -82,11 +153,11 @@ public class Player implements pentos.sim.Player {
                 if (!road_cells.contains(q) && land.unoccupied(q) && !b.contains(q)) 
                     queue.add(new Cell(q.i,q.j,p)); // use tail field of cell to keep track of previous road cell during the search
             }
-        }	
+        }
         while (!queue.isEmpty()) {
             Cell p = queue.remove();
             checked[p.i][p.j] = true;
-            for (Cell x : p.neighbors()) {		
+            for (Cell x : p.neighbors()) {
                 if (b.contains(x)) { // trace back through search tree to find path
                     Cell tail = p;
                     while (!b.contains(tail) && !road_cells.contains(tail) && !tail.equals(source)) {
@@ -98,7 +169,7 @@ public class Player implements pentos.sim.Player {
                 }
                 else if (!checked[x.i][x.j] && land.unoccupied(x.i,x.j)) {
                     x.previous = p;
-                    queue.add(x);	      
+                    queue.add(x);         
                 } 
 
             }
@@ -128,13 +199,13 @@ public class Player implements pentos.sim.Player {
             ArrayList<Cell> walk_cells = new ArrayList<Cell>();
             for (Cell p : tail.neighbors()) {
                 if (!b.contains(p) && !marked.contains(p) && land.unoccupied(p) && !output.contains(p))
-                    walk_cells.add(p);		
+                    walk_cells.add(p);      
             }
             if (walk_cells.isEmpty()) {
                 //return output; //if you want to build it anyway
                 return new HashSet<Cell>();
             }
-            output.add(tail);	    
+            output.add(tail);       
             tail = walk_cells.get(gen.nextInt(walk_cells.size()));
         }
         return output;
