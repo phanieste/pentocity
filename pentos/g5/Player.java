@@ -15,28 +15,51 @@ import pentos.g5.util.Pair;
 public class Player implements pentos.sim.Player {
 
     private Random gen = new Random();
-    private Set<Cell> road_cells = new HashSet<Cell>();
+    private Set<Cell> allRoadCells = new HashSet<Cell>();
 
     public void init() { // function is called once at the beginning before play is called
 
     }
 
-    private Move playResidence(Building request, Land land) {
+
+    private Building lastRequest;
+    private Pair[] lastHull;
+    private Pair lastBuildLocation;
+    private int lastRotation;
+    private int lastNumRoadCells;
+    private int lastLoopLevel;
+
+    private Move playCore(Building request, Land land) {
         // Build a residence
 
         BuildingUtil bu = new BuildingUtil( request );
         LandUtil lu = new LandUtil( land );
         Pair[] hull = bu.Hull();
-        Pair start = lu.getCup(bu);
 
-        Cell startCell = new Cell(start.i, start.j);
+        LandUtil.Direction d = LandUtil.Direction.INWARDS;
+        if (request.type == Building.Type.FACTORY) {
+            d = LandUtil.Direction.OUTWARDS;
+        }
+
+        Pair buildLocation = lu.getCup(bu, d);
+
+        if((buildLocation.i < 0) || (buildLocation.j < 0)) {
+            return new Move(false);
+        }
+
+        Cell startCell = new Cell(buildLocation.i, buildLocation.j);
 
         int rotation = 0;
 
-        System.out.println( "Build:" + hull[0] + hull[1]);
-        System.out.println( request.toString1() );
-        System.out.println( "At:" + start );
+        // DEBUG System.err.println( "Build:" + hull[0] + hull[1]);
+        // DEBUG System.err.println( request.toString1() );
+        // DEBUG System.err.println( "At:" + buildLocation );
 
+        lastRequest = request;
+        lastHull = hull;
+        lastBuildLocation = buildLocation;
+        lastRotation = rotation;
+        lastLoopLevel = lu.lastLoopLevel;
 
         Set<Cell> shiftedCells = new HashSet<Cell>();
         for (Cell x : request.rotations()[rotation]){
@@ -44,11 +67,15 @@ public class Player implements pentos.sim.Player {
         }            // build a road to connect this building to perimeter
         Set<Cell> roadCells = findShortestRoad(shiftedCells, land);
 
-
         Move move = new Move(true, request, startCell, rotation,
             new HashSet<Cell>(), new HashSet<Cell>(), new HashSet<Cell>());
-        move.road = roadCells;
-
+        if( roadCells!=null ) {
+            move.road = roadCells;
+            allRoadCells.addAll(roadCells);
+            lastNumRoadCells = roadCells.size();
+        } else {
+            return new Move(false);
+        }
 
 
         // for(Building r : rotations ) {
@@ -65,71 +92,48 @@ public class Player implements pentos.sim.Player {
 
         return move;
     }
+
     private Move playFactory(Building request, Land land) {
         // Build a factory
-        Move move = new Move (false);
 
         // Locate the location of first outward spiral where this Factory is possible.
 
         // Build Connecting Road to location
 
-        return move;
+        return new Move(false);
     }
+
+
 
     public Move play(Building request, Land land) {
 
-        if (request.type == Building.Type.RESIDENCE) {
-            try {
-                return playResidence(request, land);
-            } catch (Exception e) {
-                System.out.println("Some Error!");
+        Move move = playCore(request, land);
+
+        if(move.accept) {
+            if( lastNumRoadCells>0 ){
+                System.out.println("Road:"+lastNumRoadCells);
+                System.out.println("Building:" + lastHull[0] + lastHull[1]);
+                System.out.println( lastRequest.toString1() );
+                System.out.println( "At:" + lastBuildLocation );
+                System.out.println( "Reached:" + lastLoopLevel );
+                // try {
+                //     System.in.read();
+                // } catch (Exception e) {
+
+                // }
+                
             }
-        } else if (request.type == Building.Type.FACTORY) {
-            playFactory(request, land);
+        } else {
+            System.out.println("Rejecting Request");
         }
 
-        // find all valid building locations and orientations
-        ArrayList <Move> moves = new ArrayList <Move> ();
-        for (int i = 0 ; i < land.side ; i++)
-            for (int j = 0 ; j < land.side ; j++) {
-                Cell p = new Cell(i, j);
-                Building[] rotations = request.rotations();
-                for (int ri = 0 ; ri < rotations.length ; ri++) {
-                    Building b = rotations[ri];
-                    if (land.buildable(b, p)) 
-                        moves.add(new Move(true, request, p, ri, new HashSet<Cell>(), new HashSet<Cell>(), new HashSet<Cell>()));
-                }
-            }
-        // choose a building placement at random
-        if (moves.isEmpty()) // reject if no valid placements
-            return new Move(false);
-        else {
-            Move chosen = moves.get(gen.nextInt(moves.size()));
-            // get coordinates of building placement (position plus local building cell coordinates)
-            Set<Cell> shiftedCells = new HashSet<Cell>();
-            for (Cell x : chosen.request.rotations()[chosen.rotation])
-                shiftedCells.add(new Cell(x.i+chosen.location.i,x.j+chosen.location.j));
-            // build a road to connect this building to perimeter
-            Set<Cell> roadCells = findShortestRoad(shiftedCells, land);
-            if (roadCells != null) {
-                chosen.road = roadCells;
-                road_cells.addAll(roadCells);
-                if (request.type == Building.Type.RESIDENCE) { // for residences, build random ponds and fields connected to it
-                    Set<Cell> markedForConstruction = new HashSet<Cell>();
-                    markedForConstruction.addAll(roadCells);
-                    chosen.water = randomWalk(shiftedCells, markedForConstruction, land, 4);
-                    markedForConstruction.addAll(chosen.water);
-                    chosen.park = randomWalk(shiftedCells, markedForConstruction, land, 4);
-                }
-                return chosen;
-            }
-            else // reject placement if building cannot be connected by road
-                return new Move(false);
-        }
+        return move;
+
     }
 
     // build shortest sequence of road cells to connect to a set of cells b
     private Set<Cell> findShortestRoad(Set<Cell> b, Land land) {
+        System.out.println("findShortestRoad");
         Set<Cell> output = new HashSet<Cell>();
         boolean[][] checked = new boolean[land.side][land.side];
         Queue<Cell> queue = new LinkedList<Cell>();
@@ -148,9 +152,9 @@ public class Player implements pentos.sim.Player {
                 queue.add(new Cell(land.side-1,z,source));
         }
         // add cells adjacent to current road cells
-        for (Cell p : road_cells) {
+        for (Cell p : allRoadCells) {
             for (Cell q : p.neighbors()) {
-                if (!road_cells.contains(q) && land.unoccupied(q) && !b.contains(q)) 
+                if (!allRoadCells.contains(q) && land.unoccupied(q) && !b.contains(q)) 
                     queue.add(new Cell(q.i,q.j,p)); // use tail field of cell to keep track of previous road cell during the search
             }
         }
@@ -160,7 +164,7 @@ public class Player implements pentos.sim.Player {
             for (Cell x : p.neighbors()) {
                 if (b.contains(x)) { // trace back through search tree to find path
                     Cell tail = p;
-                    while (!b.contains(tail) && !road_cells.contains(tail) && !tail.equals(source)) {
+                    while (!b.contains(tail) && !allRoadCells.contains(tail) && !tail.equals(source)) {
                         output.add(new Cell(tail.i,tail.j));
                         tail = tail.previous;
                     }
