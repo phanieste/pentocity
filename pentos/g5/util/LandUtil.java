@@ -16,35 +16,63 @@ public class LandUtil {
         land = l;
     }
 
-    public Pair getDiag(BuildingUtil bu, Direction dir) {
+    public Pair getDiag(BuildingUtil bu, Direction dir, Set<Pair> rejects) {
 
         Pair[] buildingHull = bu.Hull();
 
-        int numLoops = land.side;
+        int numLoops = land.side - 1;
         Looper looper;
-        looper = new Looper(0, numLoops-1, 1);
+        looper = new Looper(0, numLoops*2, 1);
 
         int loop;
         while(looper.hasNext()) {
             loop = looper.next();
             lastLoopLevel = loop;
 
-            int i = loop;
-            int j = 0;
-            for (; j <= loop; j++) {
-                i = loop - j;
-                int actualI;
-                int actualJ;
-                if (dir == Direction.OUTWARDS) {
-                    // finding cell that factory would be placed on
-                    actualI = numLoops - i - buildingHull[1].i;
-                    actualJ = numLoops - j - buildingHull[1].j;
-                } else {
-                    actualI = i;
-                    actualJ = j;
+            if (loop <= numLoops) {
+                int i = loop;
+                int j = 0;
+                for (; j <= loop; j++) {
+                    i = loop - j;
+                    int actualI;
+                    int actualJ;
+                    if (dir == Direction.OUTWARDS) {
+                        // finding cell that factory would be placed on
+                        actualI = numLoops - i - buildingHull[1].i;
+                        actualJ = numLoops - j - buildingHull[1].j;
+                    } else {
+                        actualI = i;
+                        actualJ = j;
+                    }
+                    if (actualI < 0 || actualJ < 0)
+                        continue;
+                    Pair loc = new Pair(actualI, actualJ);
+                    if ((!rejects.contains(loc) && land.buildable(bu.building, new Cell(actualI,actualJ)))) {
+                        return loc;
+                    }
                 }
-                if (land.buildable(bu.building, new Cell(actualI,actualJ))) {
-                    return new Pair(actualI, actualJ);
+            }
+            else {
+                int i = numLoops;
+                int j = loop - numLoops;
+                for (; j <= numLoops; j++) {
+                    int actualI;
+                    int actualJ;
+                    if (dir == Direction.OUTWARDS) {
+                        // finding cell that factory would be placed on
+                        actualI = numLoops - i - buildingHull[1].i;
+                        actualJ = numLoops - j - buildingHull[1].j;
+                    } else {
+                        actualI = i;
+                        actualJ = j;
+                    }
+                    if (actualI < 0 || actualJ < 0)
+                        continue;
+                    Pair loc = new Pair(actualI, actualJ);
+                    if ((!rejects.contains(loc) && land.buildable(bu.building, new Cell(actualI,actualJ)))) {
+                        return loc;
+                    }
+                    i = i - j;
                 }
             }
         }

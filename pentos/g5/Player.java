@@ -44,46 +44,53 @@ public class Player implements pentos.sim.Player {
             d = LandUtil.Direction.OUTWARDS;
         }
 
-        Pair buildLocation;
-        if (cupStrategy)
-            buildLocation = lu.getCup(bu, d);
-        else
-            buildLocation = lu.getDiag(bu, d);
+        Set<Pair> rejectLocations = new HashSet<Pair>();
+        Set<Cell> roadCells = null;
+        Move move = new Move(false);
 
-        if((buildLocation.i < 0) || (buildLocation.j < 0)) {
-            return new Move(false);
+        while (roadCells == null) {
+            Pair buildLocation;
+            if (cupStrategy)
+                buildLocation = lu.getCup(bu, d);
+            else
+                buildLocation = lu.getDiag(bu, d, rejectLocations);
+
+            if((buildLocation.i < 0) || (buildLocation.j < 0)) {
+                return new Move(false);
+            }
+            Cell startCell = new Cell(buildLocation.i, buildLocation.j);
+
+            int rotation = 0;
+
+            // DEBUG System.err.println( "Build:" + hull[0] + hull[1]);
+            // DEBUG System.err.println( request.toString1() );
+            // DEBUG System.err.println( "At:" + buildLocation );
+
+            lastRequest = request;
+            lastHull = hull;
+            lastBuildLocation = buildLocation;
+            lastRotation = rotation;
+            lastLoopLevel = lu.lastLoopLevel;
+
+            Set<Cell> shiftedCells = new HashSet<Cell>();
+            for (Cell x : request.rotations()[rotation]){
+                shiftedCells.add(new Cell(x.i+startCell.i, x.j+startCell.j));
+            }            // build a road to connect this building to perimeter
+            roadCells = findShortestRoad(shiftedCells, land);
+
+            move = new Move(true, request, startCell, rotation,
+                new HashSet<Cell>(), new HashSet<Cell>(), new HashSet<Cell>());
+            if( roadCells!=null ) {
+                move.road = roadCells;
+                allRoadCells.addAll(roadCells);
+                lastNumRoadCells = roadCells.size();
+            } else {
+                rejectLocations.add(buildLocation);
+                move = new Move(false);
+                if (cupStrategy)
+                    return move;
+            }
         }
-
-        Cell startCell = new Cell(buildLocation.i, buildLocation.j);
-
-        int rotation = 0;
-
-        // DEBUG System.err.println( "Build:" + hull[0] + hull[1]);
-        // DEBUG System.err.println( request.toString1() );
-        // DEBUG System.err.println( "At:" + buildLocation );
-
-        lastRequest = request;
-        lastHull = hull;
-        lastBuildLocation = buildLocation;
-        lastRotation = rotation;
-        lastLoopLevel = lu.lastLoopLevel;
-
-        Set<Cell> shiftedCells = new HashSet<Cell>();
-        for (Cell x : request.rotations()[rotation]){
-            shiftedCells.add(new Cell(x.i+startCell.i, x.j+startCell.j));
-        }            // build a road to connect this building to perimeter
-        Set<Cell> roadCells = findShortestRoad(shiftedCells, land);
-
-        Move move = new Move(true, request, startCell, rotation,
-            new HashSet<Cell>(), new HashSet<Cell>(), new HashSet<Cell>());
-        if( roadCells!=null ) {
-            move.road = roadCells;
-            allRoadCells.addAll(roadCells);
-            lastNumRoadCells = roadCells.size();
-        } else {
-            return new Move(false);
-        }
-
 
         // for(Building r : rotations ) {
         //     // System.out.println( "Rotation:\n" +r.toString1() );
@@ -132,6 +139,7 @@ public class Player implements pentos.sim.Player {
             }
         } else {
             System.out.println("Rejecting Request");
+            System.out.println( lastRequest.toString1() );
         }
 
         return move;
@@ -190,8 +198,9 @@ public class Player implements pentos.sim.Player {
 
             }
         }
-        if (output.isEmpty() && queue.isEmpty())
+        if (output.isEmpty() && queue.isEmpty()) {
             return null;
+        }
         else
             return output;
     }
