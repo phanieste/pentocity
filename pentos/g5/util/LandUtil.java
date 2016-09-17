@@ -16,6 +16,41 @@ public class LandUtil {
         land = l;
     }
 
+    public Pair getDiag(BuildingUtil bu, Direction dir) {
+
+        Pair[] buildingHull = bu.Hull();
+
+        int numLoops = land.side;
+        Looper looper;
+        looper = new Looper(0, numLoops-1, 1);
+
+        int loop;
+        while(looper.hasNext()) {
+            loop = looper.next();
+            lastLoopLevel = loop;
+
+            int i = loop;
+            int j = 0;
+            for (; j <= loop; j++) {
+                i = loop - j;
+                int actualI;
+                int actualJ;
+                if (dir == Direction.OUTWARDS) {
+                    // finding cell that factory would be placed on
+                    actualI = numLoops - i - buildingHull[1].i;
+                    actualJ = numLoops - j - buildingHull[1].j;
+                } else {
+                    actualI = i;
+                    actualJ = j;
+                }
+                if (land.buildable(bu.building, new Cell(actualI,actualJ))) {
+                    return new Pair(actualI, actualJ);
+                }
+            }
+        }
+        return new Pair(-1, -1);
+    }
+
     public Pair getCup(BuildingUtil bu, Direction dir) {
 
         Pair[] buildingHull = bu.Hull();
