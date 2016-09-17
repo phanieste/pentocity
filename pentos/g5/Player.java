@@ -14,6 +14,9 @@ import pentos.g5.util.Pair;
 
 public class Player implements pentos.sim.Player {
 
+    // temporary flag for which strategy to use
+    private boolean cupStrategy = false;
+
     private Random gen = new Random();
     private Set<Cell> allRoadCells = new HashSet<Cell>();
 
@@ -41,7 +44,11 @@ public class Player implements pentos.sim.Player {
             d = LandUtil.Direction.OUTWARDS;
         }
 
-        Pair buildLocation = lu.getCup(bu, d);
+        Pair buildLocation;
+        if (cupStrategy)
+            buildLocation = lu.getCup(bu, d);
+        else
+            buildLocation = lu.getDiag(bu, d);
 
         if((buildLocation.i < 0) || (buildLocation.j < 0)) {
             return new Move(false);
@@ -154,12 +161,17 @@ public class Player implements pentos.sim.Player {
         // add cells adjacent to current road cells
         for (Cell p : allRoadCells) {
             for (Cell q : p.neighbors()) {
-                if (!allRoadCells.contains(q) && land.unoccupied(q) && !b.contains(q)) 
+                if (b.contains(q)) {
+                    return output; // adjacent to a road cell already
+                } else if (!allRoadCells.contains(q) && land.unoccupied(q) && !b.contains(q)) {
                     queue.add(new Cell(q.i,q.j,p)); // use tail field of cell to keep track of previous road cell during the search
+                }
             }
         }
         while (!queue.isEmpty()) {
             Cell p = queue.remove();
+            if (checked[p.i][p.j])
+                continue;
             checked[p.i][p.j] = true;
             for (Cell x : p.neighbors()) {
                 if (b.contains(x)) { // trace back through search tree to find path
