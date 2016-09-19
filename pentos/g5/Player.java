@@ -44,7 +44,8 @@ public class Player implements pentos.sim.Player {
         InputStream input = null;
         boolean returnVal;
         try {
-            input = new FileInputStream(CONFIG_FILE_NAME);
+            input = getClass().getResourceAsStream(CONFIG_FILE_NAME);
+            // input = new FileInputStream(CONFIG_FILE_NAME);
             prop.load(input);
             STRATEGY = Strategy.valueOf(prop.getProperty("strategy"));
             returnVal = true;
