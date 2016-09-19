@@ -72,7 +72,7 @@ public class LandUtil {
                     if ((!rejects.contains(loc) && land.buildable(bu.building, new Cell(actualI,actualJ)))) {
                         return loc;
                     }
-                    i = i - j;
+                    i = loop - j;
                 }
             }
         }

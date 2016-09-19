@@ -58,6 +58,7 @@ public class Player implements pentos.sim.Player {
                 buildLocation = lu.getDiag(bu, d, rejectLocations);
 
             if((buildLocation.i < 0) || (buildLocation.j < 0)) {
+                lastRequest = request;
                 return new Move(false);
             }
             Cell startCell = new Cell(buildLocation.i, buildLocation.j);
@@ -126,10 +127,10 @@ public class Player implements pentos.sim.Player {
         if(move.accept) {
             if( lastNumRoadCells>0 ){
                 System.out.println("Road:"+lastNumRoadCells);
-                System.out.println("Building:" + lastHull[0] + lastHull[1]);
-                System.out.println( lastRequest.toString1() );
                 System.out.println( "At:" + lastBuildLocation );
                 System.out.println( "Reached:" + lastLoopLevel );
+                System.out.println("Building:" + lastHull[0] + lastHull[1]);
+                System.out.println( lastRequest.toString1() );
                 // try {
                 //     System.in.read();
                 // } catch (Exception e) {
@@ -139,6 +140,8 @@ public class Player implements pentos.sim.Player {
             }
         } else {
             System.out.println("Rejecting Request");
+            System.out.println( "At:" + lastBuildLocation );
+            System.out.println( "Reached:" + lastLoopLevel );
             System.out.println( lastRequest.toString1() );
         }
 
@@ -171,7 +174,7 @@ public class Player implements pentos.sim.Player {
             for (Cell q : p.neighbors()) {
                 if (b.contains(q)) {
                     return output; // adjacent to a road cell already
-                } else if (!allRoadCells.contains(q) && land.unoccupied(q) && !b.contains(q)) {
+                } else if (!allRoadCells.contains(q) && land.unoccupied(q)) {
                     queue.add(new Cell(q.i,q.j,p)); // use tail field of cell to keep track of previous road cell during the search
                 }
             }
@@ -193,7 +196,7 @@ public class Player implements pentos.sim.Player {
                 }
                 else if (!checked[x.i][x.j] && land.unoccupied(x.i,x.j)) {
                     x.previous = p;
-                    queue.add(x);         
+                    queue.add(x);
                 } 
 
             }
