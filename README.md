@@ -6,11 +6,15 @@ Each of us can push our own code to our own branches (e.g. Stephanie would push 
 requests to merge into master.
 
 ## Todo
-* [ ] If rejection due to road can't be connected, do something else
-* [ ] Complete the remaining edge, one loop before and one loop after the three loops
-* [ ] Discuss more hueristics for this problem
+* [x] If rejection due to road can't be connected, do something else
+* [x] Complete the remaining edge, one loop before and one loop after the three loops
+* [x] Discuss more hueristics for this problem
 * [ ] Explore water / fields
 * [ ] Abstract Buildings to Plots, these plots can be predefined
 * [ ] Explore how Buildings can be fitted together well
 
+## Commands
+    javac pentos/sim/Simulator.java
+    javac pentos/g5/Player.java
+    java pentos.sim.Simulator -g g5 --gui
 

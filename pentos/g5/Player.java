@@ -7,15 +7,25 @@ import pentos.sim.Move;
 
 import pentos.g5.util.*;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
+import java.util.Properties;
 
 import pentos.g5.util.BuildingUtil;
 import pentos.g5.util.Pair;
 
 public class Player implements pentos.sim.Player {
 
+    public enum Strategy {SPIRAL, CORNERS};
+
     // temporary flag for which strategy to use
-    private boolean cupStrategy = false;
+    private static Strategy STRATEGY;
+    private static final String CONFIG_FILE_NAME = "player.cfg";
+
     // number of location rejections allowed before request rejected
     private static final int MAX_REJECTS = 500;
 
@@ -23,16 +33,65 @@ public class Player implements pentos.sim.Player {
     private Set<Cell> allRoadCells = new HashSet<Cell>();
 
     public void init() { // function is called once at the beginning before play is called
-
+        if( !getProperties() ) {
+            STRATEGY = Strategy.CORNERS;
+            setProperties();
+        }
     }
 
+    public boolean getProperties() {
+        Properties prop = new Properties();
+        InputStream input = null;
+        boolean returnVal;
+        try {
+            input = new FileInputStream(CONFIG_FILE_NAME);
+            prop.load(input);
+            STRATEGY = Strategy.valueOf(prop.getProperty("strategy"));
+            returnVal = true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            returnVal = false;
+        } finally {
+            if(input!=null) {
+                try {
+                    input.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return returnVal;
+    }
 
-    private Building lastRequest;
-    private Pair[] lastHull;
-    private Pair lastBuildLocation;
+    public void setProperties() {
+        Properties prop = new Properties();
+        OutputStream output = null;
+        try {
+            output = new FileOutputStream("player.cfg");
+            prop.setProperty("strategy", STRATEGY.name());
+            prop.store(output, null);
+        } catch (IOException io) {
+            io.printStackTrace();
+        } finally {
+            if(output!=null) {
+                try {
+                    output.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    // Variables to analyse
+
+    private int numRequests = 0;
     private int lastRotation;
     private int lastNumRoadCells;
     private int lastLoopLevel;
+    private Building lastRequest;
+    private Pair[] lastHull;
+    private Pair lastBuildLocation;
 
     private Move playCore(Building request, Land land) {
         // Build a residence
@@ -52,7 +111,7 @@ public class Player implements pentos.sim.Player {
 
         while (roadCells == null && rejectLocations.size() < MAX_REJECTS) {
             Pair buildLocation;
-            if (cupStrategy)
+            if (STRATEGY == Strategy.SPIRAL)
                 buildLocation = lu.getCup(bu, d, rejectLocations);
             else
                 buildLocation = lu.getDiag(bu, d, rejectLocations);
@@ -66,7 +125,7 @@ public class Player implements pentos.sim.Player {
             int rotation = 0;
 
             // DEBUG System.err.println( "Build:" + hull[0] + hull[1]);
-            // DEBUG System.err.println( request.toString1() );
+            // DEBUG System.err.println( BuildingUtil.toString(request) );
             // DEBUG System.err.println( "At:" + buildLocation );
 
             lastRequest = request;
@@ -94,7 +153,7 @@ public class Player implements pentos.sim.Player {
         }
 
         // for(Building r : rotations ) {
-        //     // System.out.println( "Rotation:\n" +r.toString1() );
+        //     System.out.println( "Rotation:\n" + BuildingUtil.toString(r) );
         // }
 
         // Locate the location of first spiral where this home is possible.
@@ -118,19 +177,14 @@ public class Player implements pentos.sim.Player {
         return new Move(false);
     }
 
-
-
     public Move play(Building request, Land land) {
+        numRequests += 1;
 
         Move move = playCore(request, land);
 
         if(move.accept) {
-            if( lastNumRoadCells>0 ){
-                System.out.println("Road:"+lastNumRoadCells);
-                System.out.println( "At:" + lastBuildLocation );
-                System.out.println( "Reached:" + lastLoopLevel );
-                System.out.println("Building:" + lastHull[0] + lastHull[1]);
-                System.out.println( lastRequest.toString1() );
+            if( false ){
+                // System.out.println( lastRequest.toString1() );
                 // try {
                 //     System.in.read();
                 // } catch (Exception e) {
@@ -139,10 +193,13 @@ public class Player implements pentos.sim.Player {
                 
             }
         } else {
-            System.out.println("Rejecting Request");
-            System.out.println( "At:" + lastBuildLocation );
-            System.out.println( "Reached:" + lastLoopLevel );
-            System.out.println( lastRequest.toString1() );
+            System.out.println("Request number      : "+numRequests);
+            System.out.println("Road cells built    : "+lastNumRoadCells);
+            System.out.println("At                  : " + lastBuildLocation );
+            System.out.println("Reached             : " + lastLoopLevel );
+            System.out.println("Building            : " + lastHull[0] + lastHull[1]);
+            System.out.println("Status              : Rejecting Request");
+            System.out.println( BuildingUtil.toString(lastRequest) );
         }
 
         return move;
@@ -216,7 +273,7 @@ public class Player implements pentos.sim.Player {
 
     // build shortest sequence of road cells to connect to a set of cells b
     private Set<Cell> findShortestRoad(Set<Cell> b, Land land) {
-        System.out.println("findShortestRoad");
+        // System.out.println("findShortestRoad");
         Set<Cell> output = new HashSet<Cell>();
         boolean[][] checked = new boolean[land.side][land.side];
         Queue<Cell> queue = new LinkedList<Cell>();

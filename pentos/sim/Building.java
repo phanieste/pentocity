@@ -171,41 +171,4 @@ public class Building implements Iterable <Cell> {
     public String toString() {
         return toString(new Cell(0, 0));
     }
-
-    public String toString1() {
-        int mini = 0;
-        int maxi = 0;
-        int minj = 0;
-        int maxj = 0;
-        char printChar = (type == Type.RESIDENCE) ? 'R' : (type == Type.FACTORY) ? 'F' : 'b';
-        for (Cell p : cells) {
-            if (p.i < mini)
-                mini = p.i;
-            if (p.i > maxi)
-                maxi = p.i;
-            if (p.j < minj)
-                minj = p.j;
-            if (p.j > maxj)
-                maxj = p.j;
-        }
-
-        char[][] buf = new char [maxi+1][maxj+1];
-        for(int i = 0; i <= maxi; ++i) {
-            for(int j = 0; j <= maxj; ++j) {
-                buf[i][j] = '.';
-            }
-        }
-
-        for (Cell p : cells) {
-            buf[p.i][p.j] = printChar;
-        }
-
-        String s1 = "";
-        for(int i = 0; i <= maxi; ++i) {
-            s1+= new String(buf[i]) + "\n";
-        }
-        // DEBUG System.err.println("size:(" + mini +","+ maxi +"),("+ minj +","+ maxj +")");
-        return s1;
-    }
-
 }

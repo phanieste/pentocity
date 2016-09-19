@@ -13,6 +13,46 @@ public class BuildingUtil {
         building = b;
     }
 
+    public static String toString(Building building){
+        int mini = 0;
+        int maxi = 0;
+        int minj = 0;
+        int maxj = 0;
+        char printChar = (building.type == Building.Type.RESIDENCE) ? 'R' : (building.type == Building.Type.FACTORY) ? 'F' : 'b';
+        for (Cell p : building) {
+            if (p.i < mini)
+                mini = p.i;
+            if (p.i > maxi)
+                maxi = p.i;
+            if (p.j < minj)
+                minj = p.j;
+            if (p.j > maxj)
+                maxj = p.j;
+        }
+
+        char[][] buf = new char [maxi+1][maxj+1];
+        for(int i = 0; i <= maxi; ++i) {
+            for(int j = 0; j <= maxj; ++j) {
+                buf[i][j] = '.';
+            }
+        }
+
+        for (Cell p : building) {
+            buf[p.i][p.j] = printChar;
+        }
+
+        String s1 = "";
+        for(int i = 0; i <= maxi; ++i) {
+            s1+= new String(buf[i]) + "\n";
+        }
+        // DEBUG System.err.println("size:(" + mini +","+ maxi +"),("+ minj +","+ maxj +")");
+        return s1;
+    }
+
+    public String toString() {
+        return BuildingUtil.toString( building );
+    }
+
     public Pair[] Hull() {
         Iterator<Cell> it = building.iterator();
         Pair start = new Pair(Integer.MAX_VALUE, Integer.MAX_VALUE);
