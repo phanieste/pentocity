@@ -86,6 +86,7 @@ public class LandUtil {
         int numLoops = (land.side+1) / 2;
         int maxI = land.side - buildingHull[1].i;
         int maxJ = land.side - buildingHull[1].j;
+        int midI = (int) Math.ceil(maxI / 2.0);
 
         Looper looper;
         if( LandUtil.Direction.OUTWARDS == dir ) {
@@ -101,8 +102,17 @@ public class LandUtil {
             lastLoopLevel = loop;
 
             // DEBUG System.err.println("Trying to build at level: "+loop);
-            int i = loop;
-            int j = 0;
+            int i = midI-(buildingHull[1].i+1);
+            int j = loop;
+            for(; i > loop; --i) {
+                // System.out.println(new Pair(i,j));
+                Pair loc = new Pair(i, j);
+                if((!rejects.contains(loc) && land.buildable( bu.building, new Cell(i,j)))) {
+                    return loc;
+                }
+            }
+            assert (i == loop);
+            assert (j == loop);
             for(; j< maxJ - loop; ++j) {
                 // System.out.println(new Pair(i,j));
                 Pair loc = new Pair(i, j);
@@ -117,7 +127,16 @@ public class LandUtil {
                     return loc;
                 }
             }   // Traverse all in the left column
-            for(; j>0; --j) {
+            for(; j>loop; --j) {
+                // System.out.println(new Pair(i,j));
+                Pair loc = new Pair(i, j);
+                if((!rejects.contains(loc) && land.buildable( bu.building, new Cell(i,j)))) {
+                    return loc;
+                }
+            }
+            assert (i == maxI-loop);
+            assert (j == loop);
+            for(; i > midI; --i) {
                 // System.out.println(new Pair(i,j));
                 Pair loc = new Pair(i, j);
                 if((!rejects.contains(loc) && land.buildable( bu.building, new Cell(i,j)))) {
