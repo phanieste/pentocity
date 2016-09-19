@@ -149,6 +149,71 @@ public class Player implements pentos.sim.Player {
 
     }
 
+    // check if cell is on perimeter
+    private boolean isOnPerimeter(Cell c, Land land) {
+        return (c.i == 0 || c.j == 0 || c.i == land.side-1 || c.j == land.side-1);
+    }
+
+    private Set<Cell> findShortestRoadAlt(Set<Cell> b, Land land) {
+        System.out.println("findShortestRoad");
+        Set<Cell> output = new HashSet<Cell>();
+        boolean[][] checked = new boolean[land.side][land.side];
+        Queue<Cell> queue = new LinkedList<Cell>();
+
+        for (Cell p : b) {
+            if (isOnPerimeter(p,land))
+                return output;
+            for (Cell q : p.neighbors()) {
+                if (allRoadCells.contains(q))
+                    return output;
+                if (land.unoccupied(q.i,q.j)) {
+                    q.previous = p;
+                    queue.add(q);
+                }
+            }
+        }
+
+        while (!queue.isEmpty()) {
+            Cell p = queue.remove();
+            if (checked[p.i][p.j])
+                continue;
+            checked[p.i][p.j] = true;
+            if (isOnPerimeter(p,land)) {
+                Cell tail = p;
+                output.add(new Cell(p.i,p.j));
+                while (!b.contains(tail)) {
+                    output.add(new Cell(tail.i,tail.j));
+                    tail = tail.previous;
+                }
+                if (!output.isEmpty())
+                    return output;
+            }
+            else {
+                for (Cell x : p.neighbors()) {
+                    if (allRoadCells.contains(x)) {
+                        Cell tail = p;
+                        output.add(new Cell(p.i,p.j));
+                        while (!b.contains(tail)) {
+                            output.add(new Cell(tail.i,tail.j));
+                            tail = tail.previous;
+                        }
+                        if (!output.isEmpty())
+                            return output;
+                    }
+                    else if (!checked[x.i][x.j] && land.unoccupied(x.i,x.j)) {
+                        x.previous = p;
+                        queue.add(x);
+                    }
+                }
+            }
+        }
+        if (output.isEmpty() && queue.isEmpty()) {
+            return null;
+        }
+        else
+            return output;
+    }
+
     // build shortest sequence of road cells to connect to a set of cells b
     private Set<Cell> findShortestRoad(Set<Cell> b, Land land) {
         System.out.println("findShortestRoad");

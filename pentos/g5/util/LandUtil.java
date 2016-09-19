@@ -47,7 +47,7 @@ public class LandUtil {
                     if (actualI < 0 || actualJ < 0)
                         continue;
                     Pair loc = new Pair(actualI, actualJ);
-                    if ((!rejects.contains(loc) && land.buildable(bu.building, new Cell(actualI,actualJ)))) {
+                    if (!rejects.contains(loc) && land.buildable(bu.building, new Cell(actualI,actualJ))) {
                         return loc;
                     }
                 }
@@ -56,6 +56,7 @@ public class LandUtil {
                 int i = numLoops;
                 int j = loop - numLoops;
                 for (; j <= numLoops; j++) {
+                    i = loop - j;
                     int actualI;
                     int actualJ;
                     if (dir == Direction.OUTWARDS) {
@@ -72,7 +73,6 @@ public class LandUtil {
                     if ((!rejects.contains(loc) && land.buildable(bu.building, new Cell(actualI,actualJ)))) {
                         return loc;
                     }
-                    i = loop - j;
                 }
             }
         }

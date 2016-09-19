@@ -25,6 +25,18 @@ public class Pair {
         j -= p.i;        
     }
 
+    public boolean equals(Object o) {
+        if (!(o instanceof Pair))
+            return false;
+        if (o == this)
+            return true;
+        return i == ((Pair) o).i && j == ((Pair) o).j;
+    }
+
+    public int hashCode() {
+        return i*100+j;
+    }
+
     public String toString() {
         return "("+i+","+j+")";
     }
