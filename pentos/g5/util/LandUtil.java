@@ -79,7 +79,7 @@ public class LandUtil {
         return new Pair(-1, -1);
     }
 
-    public Pair getCup(BuildingUtil bu, Direction dir) {
+    public Pair getCup(BuildingUtil bu, Direction dir, Set<Pair> rejects) {
 
         Pair[] buildingHull = bu.Hull();
 
@@ -105,20 +105,23 @@ public class LandUtil {
             int j = 0;
             for(; j< maxJ - loop; ++j) {
                 // System.out.println(new Pair(i,j));
-                if(land.buildable( bu.building, new Cell(i,j))) {
-                    return new Pair(i, j);
+                Pair loc = new Pair(i, j);
+                if((!rejects.contains(loc) && land.buildable( bu.building, new Cell(i,j)))) {
+                    return loc;
                 }
             }   // Traverse all in the top row
             for(; i< maxI - loop; ++i) {
                 // System.out.println(new Pair(i,j));
-                if(land.buildable( bu.building, new Cell(i,j))) {
-                    return new Pair(i, j);
+                Pair loc = new Pair(i, j);
+                if((!rejects.contains(loc) && land.buildable( bu.building, new Cell(i,j)))) {
+                    return loc;
                 }
             }   // Traverse all in the left column
             for(; j>0; --j) {
                 // System.out.println(new Pair(i,j));
-                if(land.buildable( bu.building, new Cell(i,j))) {
-                    return new Pair(i, j);
+                Pair loc = new Pair(i, j);
+                if((!rejects.contains(loc) && land.buildable( bu.building, new Cell(i,j)))) {
+                    return loc;
                 }
             }
         }

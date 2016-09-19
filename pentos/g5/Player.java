@@ -15,7 +15,7 @@ import pentos.g5.util.Pair;
 public class Player implements pentos.sim.Player {
 
     // temporary flag for which strategy to use
-    private boolean cupStrategy = false;
+    private boolean cupStrategy = true;
 
     private Random gen = new Random();
     private Set<Cell> allRoadCells = new HashSet<Cell>();
@@ -51,7 +51,7 @@ public class Player implements pentos.sim.Player {
         while (roadCells == null) {
             Pair buildLocation;
             if (cupStrategy)
-                buildLocation = lu.getCup(bu, d);
+                buildLocation = lu.getCup(bu, d, rejectLocations);
             else
                 buildLocation = lu.getDiag(bu, d, rejectLocations);
 
@@ -87,8 +87,6 @@ public class Player implements pentos.sim.Player {
             } else {
                 rejectLocations.add(buildLocation);
                 move = new Move(false);
-                if (cupStrategy)
-                    return move;
             }
         }
 
