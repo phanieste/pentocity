@@ -15,7 +15,9 @@ import pentos.g5.util.Pair;
 public class Player implements pentos.sim.Player {
 
     // temporary flag for which strategy to use
-    private boolean cupStrategy = true;
+    private boolean cupStrategy = false;
+    // number of location rejections allowed before request rejected
+    private static final int MAX_REJECTS = 500;
 
     private Random gen = new Random();
     private Set<Cell> allRoadCells = new HashSet<Cell>();
@@ -48,7 +50,7 @@ public class Player implements pentos.sim.Player {
         Set<Cell> roadCells = null;
         Move move = new Move(false);
 
-        while (roadCells == null) {
+        while (roadCells == null && rejectLocations.size() < MAX_REJECTS) {
             Pair buildLocation;
             if (cupStrategy)
                 buildLocation = lu.getCup(bu, d, rejectLocations);
