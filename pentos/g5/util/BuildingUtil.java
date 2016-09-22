@@ -13,6 +13,19 @@ public class BuildingUtil {
         building = b;
     }
 
+    public static void toString1(Building building, char[][] buf, char occupied){
+        toString1(building, buf, occupied, new Pair(0,0));
+    }
+
+    public static void toString1(Building building, char[][] buf, char occupied, Pair offset){
+
+        for (Cell p : building) {
+            buf[p.i + offset.i][p.j + offset.j] = occupied;
+        }
+
+        return;
+    }
+
     public static String toString(Building building){
         int mini = 0;
         int maxi = 0;
@@ -53,7 +66,8 @@ public class BuildingUtil {
         return BuildingUtil.toString( building );
     }
 
-    public Pair[] Hull() {
+    public static Pair[] Hull(Building building) {
+
         Iterator<Cell> it = building.iterator();
         Pair start = new Pair(Integer.MAX_VALUE, Integer.MAX_VALUE);
         Pair end = new Pair(Integer.MIN_VALUE, Integer.MIN_VALUE);
@@ -73,6 +87,10 @@ public class BuildingUtil {
             }
         }
         return hull;
+    }
+
+    public Pair[] Hull() {
+        return BuildingUtil.Hull( building );
     }
 
 }

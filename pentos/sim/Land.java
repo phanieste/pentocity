@@ -94,7 +94,7 @@ public class Land {
         return Cell.isConnected(road_network,side+2);
     }
     // return -1 if building cannot be built. Otherwise return the score accrued from constructing the building
-    protected int build(Building building, Cell q) {
+    public int build(Building building, Cell q) {
         if (!buildable(building, q))
             throw new RuntimeException("Building not buildable.");
         int score = 0;

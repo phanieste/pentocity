@@ -22,6 +22,9 @@ requests to merge into master.
 * BuildingUtil has all the code relevant to Buildings in it
 * LandUtil has all the code relevant to Land in it
 * Pentominos is a simple sequencer to generate [all the pentomino shapes](pentos/docs/pentominos.txt)
+
     javac pentos/g5/util/Pentominos.java
     java pentos.g5.util.Pentominos
+
+* It also has functions to pack two buildings together
 
