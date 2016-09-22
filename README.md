@@ -18,3 +18,10 @@ requests to merge into master.
     javac pentos/g5/Player.java
     java pentos.sim.Simulator -g g5 --gui
 
+## Utilities
+* BuildingUtil has all the code relevant to Buildings in it
+* LandUtil has all the code relevant to Land in it
+* Pentominos is a simple sequencer to generate [all the pentomino shapes](pentos/docs/pentominos.txt)
+    javac pentos/g5/util/Pentominos.java
+    java pentos.g5.util.Pentominos
+
