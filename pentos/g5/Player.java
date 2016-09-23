@@ -52,7 +52,6 @@ public class Player implements pentos.sim.Player {
 			Set<Cell> roadCells = findShortestRoad(shiftedCells, land);
 			if (roadCells != null) {
 				current.road = roadCells;
-				road_cells.addAll(roadCells);
 			}
 		}
 
@@ -60,6 +59,7 @@ public class Player implements pentos.sim.Player {
 			return new Move(false);
 		} else {
 			Move chosen = chooseMove(moves);
+			road_cells.addAll(chosen.road);
 			return chosen;
 		}
 
@@ -113,7 +113,7 @@ public class Player implements pentos.sim.Player {
 		 * cells in the grid minus any empty cells that have become invalid
 		 * building placements due to that placement
 		 */
-		Map<Integer, LinkedList<Move>> movesScores = new HashMap();
+		Map<Integer, LinkedList<Move>> movesScores = new HashMap<Integer, LinkedList<Move>>();
 		int land_side = 50;
 		for (Move current : moves) {
 			Land afterMove = landAfterBuild(current, land_side, current.request);
@@ -122,7 +122,7 @@ public class Player implements pentos.sim.Player {
 			int invalidCount = postBldInvldCt - invalidCellCtPtM;
 			score -= invalidCount;
 
-			LinkedList moveList = movesScores.get(score);
+			LinkedList<Move> moveList = movesScores.get(score);
 			if (moveList == null) {
 				moveList = new LinkedList<Move>();
 			}
@@ -137,8 +137,16 @@ public class Player implements pentos.sim.Player {
 		Collections.sort(scores);
 		Collections.reverse(scores); // order scores from highest to lowest
 		int moveChoice = scores.get(0); // first number; i.e. the highest score
-		LinkedList choiceMoves = movesScores.get(moveChoice);
-		Move chosen = (Move) choiceMoves.peek(); // take the first move off the list
+
+		/* debugging print statements */
+		ListIterator<Integer> iter = scores.listIterator();
+		while (iter.hasNext()) {
+			System.out.print(iter.next() + " ");
+		}
+		System.out.println("scores list end");
+
+		LinkedList<Move> choiceMoves = movesScores.get(moveChoice);
+		Move chosen = choiceMoves.peek(); // take the first move off the list
 
 		return chosen;
 	}
