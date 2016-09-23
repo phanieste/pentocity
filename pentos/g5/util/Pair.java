@@ -10,6 +10,9 @@ public class Pair {
     public Pair(Pair p) {
         this(p.i, p.j);
     }
+    public Pair(Pair[] h) {
+        this(1+h[1].i-h[0].i, 1+h[1].j-h[0].j);
+    }
     public Pair(int x, int y) {
         i = x;
         j = y;
@@ -73,6 +76,11 @@ public class Pair {
         // assume h1, h2 are hull
         Pair[] hull = { Pair.hull(h1[0], h2[0])[0], Pair.hull(h1[1], h2[1])[1] };
         return hull;
+    }
+
+    public static int hullSize(Pair[] h1) {
+        Pair lengths = new Pair(h1);
+        return lengths.i * lengths.j;
     }
 
 }

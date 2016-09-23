@@ -26,5 +26,10 @@ requests to merge into master.
     javac pentos/g5/util/Pentominos.java
     java pentos.g5.util.Pentominos
 
-* It also has functions to pack two buildings together
+* It also has functions to pack two buildings together to generate few [efficient packing schemes](pentos/docs/pentominos-packing.txt)
+  - Tested packing of buildings with a variety of objective functions
+  - HullSize -- Total size of convex hull produced after putting together two buildings
+  - RoadSide -- Number of road pieces covered together by the group
+  - HullFactor -- Ratio of packed hull to sum of independent hulls
+  - Shortlisted a few candidates where HullFactor < 1.0
 
