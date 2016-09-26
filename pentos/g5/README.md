@@ -8,6 +8,15 @@ Another strategy is the "Corner" strategy which builds residences and factories 
 opposite corners toward the center. Both strategies separate residences and factories into their
 own zones.
 
+### Parks and Water
+Our current strategy for parks and water involves extending the closest park or water if it is
+within a two block radius of the building, or constructing a new 4-block of park or water
+(alternating placement of park and water) that is adjacent to the building, with the bottom right
+cell taking priority. We extend this new block of park or water (also termed "bonus group") in a
+straight horizontal line (if possible) to maximize potential adjacency with future residences.
+
+Using this strategy on top of our initial basic strategy increases our score by about 100.
+
 ## How to Run
 
     javac pentos/sim/Simulator.java
