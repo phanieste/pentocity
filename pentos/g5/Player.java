@@ -136,9 +136,11 @@ public class Player implements pentos.sim.Player {
 			// System.out.printf(afterMove.toString());
 
 			if (afterMove != null) {
+				int penaltyMultiplier = 5;
 				int score = freeCellsScore(afterMove);
 				int postBldInvldCt = invalidCellCount(afterMove);
 				int invalidCount = postBldInvldCt - invalidCellCtPtM;
+				invalidCount *= 5;
 				score -= invalidCount;
 
 				LinkedList<Move> moveList = movesScores.get(score);
@@ -166,7 +168,12 @@ public class Player implements pentos.sim.Player {
 		System.out.println("scores list end");
 
 		LinkedList<Move> choiceMoves = movesScores.get(moveChoice);
-		Move chosen = choiceMoves.peek(); // take the first move off the list
+		Move chosen = null;
+		if (choiceMoves.peek().request.type == Building.Type.FACTORY) {
+			chosen = choiceMoves.peekLast();
+		} else {
+			chosen = choiceMoves.peek(); // take the first move off the list
+		}
 
 		return chosen;
 	}
