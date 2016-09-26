@@ -28,7 +28,7 @@ public class Player implements pentos.sim.Player {
 		invalidCellCtPtM = invalidCellCount(land);
 		land_in_play = land;
 
-		LandBuilder testLand = new Land(land.side);
+		LandBuilder testLand = new LandBuilder(land.side);
 		if (turn == 1) {
 			testLand = this.prePlanRoads(land);
 		} else {
