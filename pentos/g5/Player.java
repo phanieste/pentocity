@@ -28,19 +28,22 @@ public class Player implements pentos.sim.Player {
 		invalidCellCtPtM = invalidCellCount(land);
 		land_in_play = land;
 
+		LandBuilder testLand = new Land(land.side);
 		if (turn == 1) {
-			
+			testLand = this.prePlanRoads(land);
+		} else {
+			testLand.copy(land);
 		}
 
 		/* find all valid building locations and orientations */
 		ArrayList<Move> moves = new ArrayList<Move>();
-		for (int i = 0; i < land.side; i++) {
-			for (int j = 0; j < land.side; j++) {
+		for (int i = 0; i < testLand.side; i++) {
+			for (int j = 0; j < testLand.side; j++) {
 				Cell p = new Cell(i, j);
 				Building[] rotations = request.rotations();
 				for (int ri = 0; ri < rotations.length; ri++) {
 					Building b = rotations[ri];
-					if (land.buildable(b, p))
+					if (testLand.buildable(b, p))
 						moves.add(new Move(true, request, p, ri,
 							new HashSet<Cell>(), new HashSet<Cell>(),
 								new HashSet<Cell>()));
@@ -64,7 +67,7 @@ public class Player implements pentos.sim.Player {
 				shiftedCells.add(new Cell(x.i + current.location.i, x.j + current.location.j));
 
 			/* build a road to connect this building to perimeter */
-			Set<Cell> roadCells = findShortestRoadAlt(shiftedCells, land);
+			Set<Cell> roadCells = findShortestRoadAlt(shiftedCells, testLand);
 			if (roadCells != null) {
 				current.road = roadCells;
 			}
