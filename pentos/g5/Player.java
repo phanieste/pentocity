@@ -4,16 +4,18 @@ import pentos.sim.Cell;
 import pentos.sim.Building;
 import pentos.sim.Land;
 import pentos.sim.Move;
-import pentos.g5.LandBuilder;
+import pentos.sim.LandBuilder;
 
 import java.util.*;
 
 public class Player implements pentos.sim.Player {
 
+	private int turn;	/* keeps track of the turn played */
 	private Random gen;
 	/* invalid cell count of the land grid prior before move execution */
 	private int invalidCellCtPtM;
 	private Set<Cell> road_cells = new HashSet<Cell>();
+	private Land land_in_play;
 
 	/* function is called once at the beginning before play is called */
 	public void init() {
@@ -23,6 +25,7 @@ public class Player implements pentos.sim.Player {
 	public Move play(Building request, Land land) {
 		/* set invalid cell count for the current land configuration */
 		invalidCellCtPtM = invalidCellCount(land);
+		land_in_play = land;
 
 		/* find all valid building locations and orientations */
 		ArrayList<Move> moves = new ArrayList<Move>();
@@ -33,11 +36,18 @@ public class Player implements pentos.sim.Player {
 				for (int ri = 0; ri < rotations.length; ri++) {
 					Building b = rotations[ri];
 					if (land.buildable(b, p))
-						moves.add(new Move(true, request, p, ri, new HashSet<Cell>(), new HashSet<Cell>(),
+						moves.add(new Move(true, request, p, ri,
+							new HashSet<Cell>(), new HashSet<Cell>(),
 								new HashSet<Cell>()));
 				}
 			}
 		}
+
+		/* for debugging */
+		int nmbr_of_moves = moves.size();
+		System.out.printf("Turn %d: %d possible moves.\n", turn, nmbr_of_moves);
+		turn++;
+
 		/* add necessary road placement to each move in valid set of moves */
 		for (Move current : moves) {
 			/*
@@ -49,7 +59,7 @@ public class Player implements pentos.sim.Player {
 				shiftedCells.add(new Cell(x.i + current.location.i, x.j + current.location.j));
 
 			/* build a road to connect this building to perimeter */
-			Set<Cell> roadCells = findShortestRoad(shiftedCells, land);
+			Set<Cell> roadCells = findShortestRoadAlt(shiftedCells, land);
 			if (roadCells != null) {
 				current.road = roadCells;
 			}
@@ -113,21 +123,31 @@ public class Player implements pentos.sim.Player {
 		 * cells in the grid minus any empty cells that have become invalid
 		 * building placements due to that placement
 		 */
-		Map<Integer, LinkedList<Move>> movesScores = new HashMap<Integer, LinkedList<Move>>();
-		int land_side = 50;
+		Map<Integer, LinkedList<Move> > movesScores = new HashMap<Integer, LinkedList<Move> >();
+		LandBuilder afterMove = null;
+		int moveNmbr = 0;	/* for debugging */
 		for (Move current : moves) {
-			Land afterMove = landAfterBuild(current, land_side, current.request);
-			int score = freeCellsScore(afterMove);
-			int postBldInvldCt = invalidCellCount(afterMove);
-			int invalidCount = postBldInvldCt - invalidCellCtPtM;
-			score -= invalidCount;
+			/* for debugging */
+			// System.out.printf("Evaluating move #: %d\n", ++moveNmbr);
 
-			LinkedList<Move> moveList = movesScores.get(score);
-			if (moveList == null) {
-				moveList = new LinkedList<Move>();
+			afterMove = landAfterBuild(current, current.request);
+
+			// /* for debugging */
+			// System.out.printf(afterMove.toString());
+
+			if (afterMove != null) {
+				int score = freeCellsScore(afterMove);
+				int postBldInvldCt = invalidCellCount(afterMove);
+				int invalidCount = postBldInvldCt - invalidCellCtPtM;
+				score -= invalidCount;
+
+				LinkedList<Move> moveList = movesScores.get(score);
+				if (moveList == null) {
+					moveList = new LinkedList<Move>();
+				}
+				moveList.add(current);
+				movesScores.put(score, moveList);
 			}
-			moveList.add(current);
-			movesScores.put(score, moveList);
 		}
 		ArrayList<Integer> scores = new ArrayList<Integer>();
 		Set<Integer> scoresSet = movesScores.keySet();
@@ -156,34 +176,51 @@ public class Player implements pentos.sim.Player {
 	 * built on the land. method copied almost word for word from the Simulator
 	 * class
 	 */
-	private Land landAfterBuild(Move move, int grid_side, Building request) {
-		LandBuilder land = new LandBuilder(grid_side);
+	private LandBuilder landAfterBuild(Move move, Building request) {
+		LandBuilder land = new LandBuilder(land_in_play.side);
+		land.copy(land_in_play);
+
+		/* for debugging */
+		// System.out.println("Before move -");
+		// System.out.printf(land.toString());
+
 		Building[] building_rotations = request.rotations();
 		Building rotated_building = building_rotations[move.rotation];
 		// play move. First build auxiliary structures.
 		Iterator<Cell> water_cells = move.water.iterator();
 		Iterator<Cell> park_cells = move.park.iterator();
-		Iterator<Cell> road_cells = move.road.iterator();
+		Iterator<Cell> rd_cells = move.road.iterator();
 		String roadCells = "";
 		while (water_cells.hasNext())
 			land.buildWater(water_cells.next());
 		while (park_cells.hasNext())
 			land.buildPark(park_cells.next());
-		while (road_cells.hasNext()) {
-			Cell x = road_cells.next();
+		while (rd_cells.hasNext()) {
+			Cell x = rd_cells.next();
 			roadCells = roadCells + " " + x.i + "," + x.j;
 		}
-		road_cells = move.road.iterator();
-		while (road_cells.hasNext())
-			land.buildRoad(road_cells.next());
+		rd_cells = move.road.iterator();
+		while (rd_cells.hasNext())
+			land.buildRoad(rd_cells.next());
 		if (!land.validateRoads())
 			throw new RuntimeException("Roads not connected");
 		String buildingCells = "";
 		for (Cell p : rotated_building)
 			buildingCells = buildingCells + " (" + (p.i + move.location.i) + "," + (p.j + move.location.j) + ")";
 		int delta = land.build(rotated_building, move.location);
-		if (delta == -1)
-			throw new RuntimeException("Invalid building placement");
+
+		/* for debugging */
+		// System.out.println("After move -");
+		// System.out.printf(land.toString());
+		// LandBuilder landCheck = new LandBuilder(land_in_play.side);
+		// landCheck.copy(land_in_play);
+		// System.out.println("land_in_play");
+		// System.out.printf(landCheck.toString());
+
+		if (delta == -1) {
+			// throw new RuntimeException("Invalid building placement");
+			return null;
+		}
 		return land;
 	}
 
@@ -253,7 +290,7 @@ public class Player implements pentos.sim.Player {
 		for (int z = 0; z < land.side; z++) {
 			/* if already on border don't build any roads */
 			if (b.contains(new Cell(0, z)) || b.contains(new Cell(z, 0)) || b.contains(new Cell(land.side - 1, z))
-					|| b.contains(new Cell(z, land.side - 1)))
+							|| b.contains(new Cell(z, land.side - 1)))
 				return output;
 			if (land.unoccupied(0, z))
 				queue.add(new Cell(0, z, source));
@@ -295,7 +332,6 @@ public class Player implements pentos.sim.Player {
 					x.previous = p;
 					queue.add(x);
 				}
-
 			}
 		}
 		if (output.isEmpty() && queue.isEmpty())
@@ -338,4 +374,69 @@ public class Player implements pentos.sim.Player {
 		return output;
 	}
 
+	/* Everything below this point is from Stephanie's player commit */
+	private Set<Cell> findShortestRoadAlt(Set<Cell> b, Land land) {
+		// System.out.println("findShortestRoad");
+		Set<Cell> output = new HashSet<Cell>();
+		boolean[][] checked = new boolean[land.side][land.side];
+		Queue<Cell> queue = new LinkedList<Cell>();
+
+		for (Cell p : b) {
+			if (isOnPerimeter(p,land))
+				return output;
+			for (Cell q : p.neighbors()) {
+				if (road_cells.contains(q))
+					return output;
+				if (land.unoccupied(q.i,q.j)) {
+					q.previous = p;
+					queue.add(q);
+				}
+			}
+		}
+
+		while (!queue.isEmpty()) {
+			Cell p = queue.remove();
+			if (checked[p.i][p.j])
+				continue;
+			checked[p.i][p.j] = true;
+			if (isOnPerimeter(p,land)) {
+				Cell tail = p;
+				output.add(new Cell(p.i,p.j));
+				while (!b.contains(tail)) {
+					output.add(new Cell(tail.i,tail.j));
+					tail = tail.previous;
+				}
+				if (!output.isEmpty())
+					return output;
+			}
+			else {
+				for (Cell x : p.neighbors()) {
+					if (road_cells.contains(x)) {
+						Cell tail = p;
+						output.add(new Cell(p.i,p.j));
+						while (!b.contains(tail)) {
+							output.add(new Cell(tail.i,tail.j));
+							tail = tail.previous;
+						}
+						if (!output.isEmpty())
+							return output;
+					}
+					else if (!checked[x.i][x.j] && land.unoccupied(x.i,x.j)) {
+						x.previous = p;
+						queue.add(x);
+					}
+				}
+			}
+		}
+		if (output.isEmpty() && queue.isEmpty()) {
+			return null;
+		}
+		else
+			return output;
+	}
+
+	// check if cell is on perimeter
+	private boolean isOnPerimeter(Cell c, Land land) {
+		return (c.i == 0 || c.j == 0 || c.i == land.side-1 || c.j == land.side-1);
+	}
 }
