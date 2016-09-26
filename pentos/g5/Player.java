@@ -20,12 +20,17 @@ public class Player implements pentos.sim.Player {
 	/* function is called once at the beginning before play is called */
 	public void init() {
 		gen = new Random();
+		turn = 1;
 	}
 
 	public Move play(Building request, Land land) {
 		/* set invalid cell count for the current land configuration */
 		invalidCellCtPtM = invalidCellCount(land);
 		land_in_play = land;
+
+		if (turn == 1) {
+			
+		}
 
 		/* find all valid building locations and orientations */
 		ArrayList<Move> moves = new ArrayList<Move>();
@@ -109,6 +114,28 @@ public class Player implements pentos.sim.Player {
 		// } else /* reject placement if building can't be connected by road */
 		// return new Move(false);
 		// }
+	}
+
+	private LandBuilder prePlanRoads(Land land) {
+		Set<Cell> initialRdCells = new HashSet<Cell>();
+		LandBuilder firstBoard = new LandBuilder(land.side);
+		firstBoard.copy(land);
+		int j = 0;
+		int k = 49;
+		for (int i = 8; i < 45; i += 9) {
+			for(; j <= 21 && k >= 27;) {
+				Cell a = new Cell(i, j);
+				Cell b = new Cell(i, k);
+				initialRdCells.add(a);
+				initialRdCells.add(b);
+				firstBoard.buildRoad(a);
+				firstBoard.buildRoad(b);
+				j++;
+				k--;
+			}
+		}
+		road_cells.addAll(initialRdCells);
+		return firstBoard;
 	}
 
 	private Move chooseMove(ArrayList<Move> moves) {
