@@ -132,7 +132,7 @@ public class Pentominos implements pentos.sim.Sequencer {
                     // BuildingUtil.toString1(r2, buf, '2', offset);
                     // BuildingUtil.toString1(r1, buf, '1');
                     // System.out.println( "|"+StringUtil.toString(buf, "|\n|")+"|" );
-                    System.out.println(hull1[1].toString() + hull2[1].toString() + hull[1].toString() + ", " + hullSize + ", " + roadSide + ", " + hullFactor + ", " + Pair.hullSize(hull) + ", " + Pair.hullSize(hull1) + ", " + Pair.hullSize(hull2)) ;
+                    // System.out.println(hull1[1].toString() + hull2[1].toString() + hull[1].toString() + ", " + hullSize + ", " + roadSide + ", " + hullFactor + ", " + Pair.hullSize(hull) + ", " + Pair.hullSize(hull1) + ", " + Pair.hullSize(hull2)) ;
                 }
             }
         }

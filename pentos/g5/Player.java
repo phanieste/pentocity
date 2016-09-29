@@ -114,22 +114,17 @@ public class Player implements pentos.sim.Player {
 
         while (roadCells == null && rejectLocations.size() < MAX_REJECTS) {
             Pair buildLocation;
-            if (STRATEGY == Strategy.SPIRAL)
-                buildLocation = lu.getCup(bu, d, rejectLocations);
-            else
-                buildLocation = lu.getDiag(bu, d, rejectLocations);
+            int rotation = 0;
 
-            if((buildLocation.i < 0) || (buildLocation.j < 0)) {
+            if( lu.searchOptimalPlacement(bu, d, rejectLocations) ) {
+                buildLocation = lu.returnPair;
+                rotation = lu.returnRotation;
+            } else {
                 lastRequest = request;
                 return new Move(false);
             }
+
             Cell startCell = new Cell(buildLocation.i, buildLocation.j);
-
-            int rotation = 0;
-
-            // DEBUG System.err.println( "Build:" + hull[0] + hull[1]);
-            // DEBUG System.err.println( BuildingUtil.toString(request) );
-            // DEBUG System.err.println( "At:" + buildLocation );
 
             lastRequest = request;
             lastHull = hull;
@@ -141,12 +136,6 @@ public class Player implements pentos.sim.Player {
             for (Cell x : request.rotations()[rotation]){
                 shiftedCells.add(new Cell(x.i+startCell.i, x.j+startCell.j));
             }            // build a road to connect this building to perimeter
-            if (request.type == Building.Type.FACTORY) {
-                bonusCells = null;
-            } else {
-                if ((bonusCells = findNearestBonus(shiftedCells, land)) == null)
-                    bonusCells = buildBonusGroup(shiftedCells, buildLocation, land, bu);
-            }
 
             move = new Move(true, request, startCell, rotation,
                 new HashSet<Cell>(), new HashSet<Cell>(), new HashSet<Cell>());
@@ -167,7 +156,6 @@ public class Player implements pentos.sim.Player {
                 allRoadCells.addAll(roadCells);
                 lastNumRoadCells = roadCells.size();
             } else {
-                // remove any bonus cells that were just placed
                 if (bonusCells != null)
                     allBonusCells.removeAll(bonusCells);
                 rejectLocations.add(buildLocation);
@@ -175,47 +163,13 @@ public class Player implements pentos.sim.Player {
             }
         }
 
-        // for(Building r : rotations ) {
-        //     System.out.println( "Rotation:\n" + BuildingUtil.toString(r) );
-        // }
-
-        // Locate the location of first spiral where this home is possible.
-        // * cannot build on a reserved piece of road that connects the inside
-
-        // Build Connecting Road to location
-
-        // Try to optimize with parks and ponds
-        // * Do we need to put parks and ponds before the residence is built?
-
         return move;
-    }
-
-    private Move playFactory(Building request, Land land) {
-        // Build a factory
-
-        // Locate the location of first outward spiral where this Factory is possible.
-
-        // Build Connecting Road to location
-
-        return new Move(false);
     }
 
     public Move play(Building request, Land land) {
         numRequests += 1;
-
         Move move = playCore(request, land);
-
-        if(move.accept) {
-            if( false ){
-                // System.out.println( lastRequest.toString1() );
-                // try {
-                //     System.in.read();
-                // } catch (Exception e) {
-
-                // }
-                
-            }
-        } else {
+        if(!move.accept) {
             System.out.println("Request number      : "+numRequests);
             System.out.println("Road cells built    : "+lastNumRoadCells);
             System.out.println("At                  : " + lastBuildLocation );
@@ -224,9 +178,7 @@ public class Player implements pentos.sim.Player {
             System.out.println("Status              : Rejecting Request");
             System.out.println( BuildingUtil.toString(lastRequest) );
         }
-
         return move;
-
     }
 
     // check if cell is on perimeter
