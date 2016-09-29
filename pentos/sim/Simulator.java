@@ -38,7 +38,7 @@ class Simulator {
 			throw new IllegalArgumentException("Missing sequencer name");
 		    sequencer = args[++a];
 		}
-		else if (args[a].equals("--gui-fps")) {
+		else if (args[a].equals("--fps")) {
 		    if (++a == args.length)
 			throw new IllegalArgumentException("Missing GUI FPS");
 		    double gui_fps = Double.parseDouble(args[a]);
