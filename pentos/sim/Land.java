@@ -81,14 +81,14 @@ public class Land {
     
     // functions for simulator to build stuff
     protected void buildWater(Cell q) {
-	land[q.i][q.j].buildWater();
+	land[q.i][q.j] = land[q.i][q.j].buildWater();
     }
     protected void buildRoad(Cell q) {
 	road_network.add(new Cell(q.i+1,q.j+1)); // re-index to allow borders
-	land[q.i][q.j].buildRoad();
+	land[q.i][q.j] = land[q.i][q.j].buildRoad();
     }
     protected void buildPark(Cell q) {
-	land[q.i][q.j].buildPark();
+	land[q.i][q.j] = land[q.i][q.j].buildPark();
     }
     protected boolean validateRoads() {
 	return Cell.isConnected(road_network,side+2);
@@ -100,9 +100,9 @@ public class Land {
 	int score = 0;
 	for (Cell p : building) {
 	    if (building.type == Building.Type.FACTORY)
-		land[p.i + q.i][p.j + q.j].buildFactory();
+		land[p.i+q.i][p.j+q.j] = land[p.i + q.i][p.j + q.j].buildFactory();
 	    else if (building.type == Building.Type.RESIDENCE)
-		land[p.i + q.i][p.j + q.j].buildResidence();
+		land[p.i+q.i][p.j+q.j] = land[p.i + q.i][p.j + q.j].buildResidence();
 	    else
 		throw new IllegalArgumentException("Building type not specified.");
 	    score += 1;	    
