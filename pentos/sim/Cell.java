@@ -135,25 +135,25 @@ public class Cell implements Comparable <Cell> {
 	return i*100+j;
     }
 
-	public int compareTo(Cell p) {
-		return i != p.i ? i - p.i : j - p.j;
-	}
-
-	public String toString() {
-		return "(" + i + ", " + j + ")";
-	}
-
-	public static String toString(Set<Cell> points) {
-		StringBuffer buf = new StringBuffer();
-		for (Cell p : points) {
-			buf.append(";");
-			buf.append(p.i + "," + p.j);
-		}
-		return buf.toString();
-	}
-
-	public int hashCode() {
-		return i * 100 + j;
-	}
+	// public int compareTo(Cell p) {
+	// 	return i != p.i ? i - p.i : j - p.j;
+	// }
+    //
+	// public String toString() {
+	// 	return "(" + i + ", " + j + ")";
+	// }
+    //
+	// public static String toString(Set<Cell> points) {
+	// 	StringBuffer buf = new StringBuffer();
+	// 	for (Cell p : points) {
+	// 		buf.append(";");
+	// 		buf.append(p.i + "," + p.j);
+	// 	}
+	// 	return buf.toString();
+	// }
+    //
+	// public int hashCode() {
+	// 	return i * 100 + j;
+	// }
 
 }

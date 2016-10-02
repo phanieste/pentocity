@@ -93,8 +93,8 @@ public class LandUtil {
         MinAndArgMin<Pair> indexWiseLocations = new MinAndArgMin<Pair>();
         MinAndArgMin<Integer> indexWiseRotations = new MinAndArgMin<Integer>();
 
-        // MinAndArgMin<Pair> otherWiseLocations = new MinAndArgMin<Pair>();
-        // MinAndArgMin<Integer> otherWiseRotations = new MinAndArgMin<Integer>();
+        MinAndArgMin<Pair> smoothnessWiseLocations = new MinAndArgMin<Pair>();
+        MinAndArgMin<Integer> smoothnessWiseRotations = new MinAndArgMin<Integer>();
 
         // MinAndArgMin<Pair> otherWiseLocations = new MinAndArgMin<Pair>();
         // MinAndArgMin<Integer> otherWiseRotations = new MinAndArgMin<Integer>();
@@ -106,6 +106,10 @@ public class LandUtil {
             rotations = bu.building.rotations();
             for( int r=0; r < rotations.length; ++r ) {
                 if(!rejects.contains(p) && land.buildable(rotations[r], new Cell(p.i, p.j)) ) {
+                    int smoothScore = this.smoothness(rotations[r], p);
+                    System.out.println("smooth score = " + smoothScore + " for rotation " + r);
+                    smoothnessWiseLocations.consider(smoothScore, p);
+                    smoothnessWiseRotations.consider(smoothScore, r);
                     indexWiseLocations.consider( count, p);
                     indexWiseRotations.consider( count, r);
                 }
@@ -118,6 +122,47 @@ public class LandUtil {
             return true;
         }
         return false;
+    }
+
+    private int smoothness(Building bu, Pair p) {
+        // for (Cell q : bu) {
+        //     if (!this.land.unoccupied(p.i + q.i, p.j + q.j))
+        //         return -1;
+        //     else
+        //         q = new Cell(p.i + q.i, p.j + q.j, (Type) bu.getType());
+        // }
+        Iterator<Cell> iter = bu.iterator();
+        Set<Cell> buildingCells = new HashSet<Cell>();
+        while (iter.hasNext()) {
+            Cell bCell = iter.next();
+            buildingCells.add(new Cell(bCell.i + p.i, bCell.j + p.j));
+        }
+
+        int score = 0;
+        for (int i = 0 ; i < land.side ; i++) {
+    	    for (int j = 0 ; j < land.side ; j++) {
+    		    Cell curr = new Cell(i, j);
+
+                if (buildingCells.contains(curr)) {
+                    Cell[] neighbors = curr.neighbors();
+                    for (Cell neighbor : neighbors) {
+                        if (!buildingCells.contains(neighbor)) {
+                            if (neighbor.isEmpty()) {
+                                score++;
+                            }
+                        }
+                    }
+                } else if (!this.land.unoccupied(curr)) {
+                    Cell[] neighbors = curr.neighbors();
+                    for (Cell neighbor : neighbors) {
+                        if (neighbor.isEmpty() && !buildingCells.contains(neighbor)) {
+                            score++;
+                        }
+                    }
+                }
+    	    }
+        }
+        return score;
     }
 
 }

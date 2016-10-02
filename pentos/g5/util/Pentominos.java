@@ -57,7 +57,7 @@ public class Pentominos implements pentos.sim.Sequencer {
             cells.add(new Cell(indices[id][i][0],indices[id][i][1]));
         }
         // System.out.println();
-        return new Building(cells.toArray(new Cell[cells.size()]), Building.Type.RESIDENCE);        
+        return new Building(cells.toArray(new Cell[cells.size()]), Building.Type.RESIDENCE);
     }
 
     public Building next() {
@@ -92,7 +92,7 @@ public class Pentominos implements pentos.sim.Sequencer {
         for( Building r1 : b1.rotations() ) {
             l = new Land(16);
 
-            l.build( r1, new Cell(0,0) );
+            // l.build( r1, new Cell(0,0) );
 
             hull1 = BuildingUtil.Hull(r1);
             hull2 = null;
@@ -141,8 +141,8 @@ public class Pentominos implements pentos.sim.Sequencer {
             BuildingUtil.toString1(roadWiseBuildings.argMin[1], buf, '2', roadWiseOffset.argMin);
             BuildingUtil.toString1(roadWiseBuildings.argMin[0], buf, '1');
             System.out.println( "|"+StringUtil.toString(buf, "|\n|")+"|" );
-    
-    
+
+
             System.out.println("hullWiseBuildings: "+hullWiseBuildings.toString());
             System.out.println("roadWiseBuildings: "+roadWiseBuildings.toString());
         }
