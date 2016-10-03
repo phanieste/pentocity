@@ -102,6 +102,32 @@ public class Looper2D {
         return l;
     }
 
+
+    public static List<Pair> getBlocks( int m, int n, boolean outwards ) {
+
+        int i;
+        int j;
+        List<Pair> l = new ArrayList<Pair>();
+        Looper looperI = null;
+        Looper looperJ = null;
+
+        if(outwards) {
+            for(i=0; i<m; ++i) {
+                for(j=0; j<n; ++j) {
+                    l.add( new Pair(i, j) );
+                }
+            }
+        } else {
+            for(i=m-1; i>=0; --i) {
+                for(j=n-1; j>=0; --j) {
+                    l.add( new Pair(i, j) );
+                }
+            }
+        }
+
+        return l;
+    }
+
     public static void main(String[] args) {
 
         int counter = 0;

@@ -20,7 +20,7 @@ import pentos.g5.util.BuildingUtil; import pentos.g5.util.Pair;
 
 public class Player implements pentos.sim.Player {
 
-    public enum Strategy {SPIRAL, CORNERS};
+    public enum Strategy {SPIRAL, CORNERS, BLOCKS};
 
     // temporary flag for which strategy to use
     private static Strategy STRATEGY;
@@ -40,6 +40,8 @@ public class Player implements pentos.sim.Player {
             BONUS_LOOKUP = 4;
             setProperties();
         }
+        System.out.println("STRATEGY="+STRATEGY);
+        System.out.println("BONUS_LOOKUP="+BONUS_LOOKUP);
     }
 
     public boolean getProperties() {
@@ -163,8 +165,9 @@ public class Player implements pentos.sim.Player {
                 }
                 allBonusCells.addAll(bonusCells);
             }
-            
+
             roadCells = findShortestRoute(shiftedCells, land, "road", -1);
+
             if( roadCells!=null ) {
                 move.road = roadCells;
                 allRoadCells.addAll(roadCells);
@@ -176,6 +179,7 @@ public class Player implements pentos.sim.Player {
                 move = new Move(false);
             }
         }
+
 
         return move;
     }
@@ -419,7 +423,7 @@ public class Player implements pentos.sim.Player {
                 else if (!checked[x.i][x.j] && isUnoccupied(x.i,x.j,land)) {
                     x.previous = p;
                     queue.add(x);
-                } 
+                }
 
             }
         }
@@ -430,7 +434,7 @@ public class Player implements pentos.sim.Player {
             return output;
     }
 
-    // walk n consecutive cells starting from a building. Used to build a random field or pond. 
+    // walk n consecutive cells starting from a building. Used to build a random field or pond.
     private Set<Cell> randomWalk(Set<Cell> b, Set<Cell> marked, Land land, int n) {
         ArrayList<Cell> adjCells = new ArrayList<Cell>();
         Set<Cell> output = new HashSet<Cell>();
@@ -439,7 +443,7 @@ public class Player implements pentos.sim.Player {
                 if (land.isField(q) || land.isPond(q))
                     return new HashSet<Cell>();
                 if (!b.contains(q) && !marked.contains(q) && land.unoccupied(q))
-                    adjCells.add(q); 
+                    adjCells.add(q);
             }
         }
         if (adjCells.isEmpty())
@@ -449,16 +453,15 @@ public class Player implements pentos.sim.Player {
             ArrayList<Cell> walk_cells = new ArrayList<Cell>();
             for (Cell p : tail.neighbors()) {
                 if (!b.contains(p) && !marked.contains(p) && land.unoccupied(p) && !output.contains(p))
-                    walk_cells.add(p);      
+                    walk_cells.add(p);
             }
             if (walk_cells.isEmpty()) {
                 //return output; //if you want to build it anyway
                 return new HashSet<Cell>();
             }
-            output.add(tail);       
+            output.add(tail);
             tail = walk_cells.get(gen.nextInt(walk_cells.size()));
         }
         return output;
     }
-
 }
