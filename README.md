@@ -17,6 +17,7 @@ requests to merge into master.
     javac pentos/sim/Simulator.java
     javac pentos/g5/Player.java
     java pentos.sim.Simulator -g g5 --gui
+    git archive master g5/ --format=zip --output g5.zip
 
 ## Utilities
 * BuildingUtil has all the code relevant to Buildings in it

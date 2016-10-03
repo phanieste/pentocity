@@ -9,6 +9,7 @@ import pentos.g5.util.*;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -23,6 +24,7 @@ public class Player implements pentos.sim.Player {
 
     // temporary flag for which strategy to use
     private static Strategy STRATEGY;
+    private static int BONUS_LOOKUP;
     private static final String CONFIG_FILE_NAME = "player.cfg";
 
     // number of location rejections allowed before request rejected
@@ -35,6 +37,7 @@ public class Player implements pentos.sim.Player {
     public void init() { // function is called once at the beginning before play is called
         if( !getProperties() ) {
             STRATEGY = Strategy.CORNERS;
+            BONUS_LOOKUP = 4;
             setProperties();
         }
     }
@@ -47,9 +50,10 @@ public class Player implements pentos.sim.Player {
             input = getClass().getResourceAsStream(CONFIG_FILE_NAME);
             // input = new FileInputStream(CONFIG_FILE_NAME);
             prop.load(input);
-            STRATEGY = Strategy.valueOf(prop.getProperty("strategy"));
+            STRATEGY = Strategy.valueOf(prop.getProperty("STRATEGY"));
+            BONUS_LOOKUP = Integer.parseInt(prop.getProperty("BONUS_LOOKUP"));
             returnVal = true;
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             returnVal = false;
         } finally {
@@ -68,10 +72,13 @@ public class Player implements pentos.sim.Player {
         Properties prop = new Properties();
         OutputStream output = null;
         try {
-            output = new FileOutputStream("player.cfg");
-            prop.setProperty("strategy", STRATEGY.name());
+            File file = new File( getClass().getResource(CONFIG_FILE_NAME).toURI() );
+            output = new FileOutputStream(file);
+            prop.setProperty("STRATEGY", STRATEGY.name());
+            prop.setProperty("BONUS_LOOKUP", ""+BONUS_LOOKUP);
             prop.store(output, null);
-        } catch (IOException io) {
+        } catch (
+            Exception io) {
             io.printStackTrace();
         } finally {
             if(output!=null) {
@@ -139,7 +146,7 @@ public class Player implements pentos.sim.Player {
             if (request.type == Building.Type.FACTORY) {
                 bonusCells = null;
             } else {
-                if ((bonusCells = findShortestRoute(shiftedCells, land, "bonus", 2)) == null) {
+                if ((bonusCells = findShortestRoute(shiftedCells, land, "bonus", BONUS_LOOKUP)) == null) {
                     bonusCells = buildBonusGroup(shiftedCells, land);
                 }
             }
