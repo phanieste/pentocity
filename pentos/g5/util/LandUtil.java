@@ -5,6 +5,7 @@ import java.util.*;
 import pentos.sim.Land;
 import pentos.sim.Cell;
 import pentos.sim.Building;
+import pentos.g5.Player;
 
 public class LandUtil {
 
@@ -83,7 +84,7 @@ public class LandUtil {
         return new Pair(-1, -1);
     }
 
-    public boolean searchOptimalPlacement(BuildingUtil bu, Direction dir, Set<Pair> rejects) {
+    public boolean searchOptimalPlacement(BuildingUtil bu, Direction dir, Set<Pair> rejects, Player.Strategy strategy) {
 
         int count = 0;
 
@@ -102,8 +103,16 @@ public class LandUtil {
         Building[] rotations = null;
         // Building r = null;
 
+        List<Pair> allPairs;
+
+        if( strategy == Player.Strategy.SPIRAL ) {
+            allPairs = Looper2D.getSpiral( size.i, size.j, dir==Direction.OUTWARDS );
+        } else {
+            allPairs = Looper2D.getCorner( size.i, size.j, dir==Direction.OUTWARDS );
+        }
+
         // for( Pair p : Looper2D.getSpiral( size.i, size.j, dir==Direction.OUTWARDS )) {
-        for( Pair p : Looper2D.getCorner( size.i, size.j, dir==Direction.OUTWARDS )) {
+        for(Pair p : allPairs) {
             rotations = bu.building.rotations();
             for( int r=0; r < rotations.length; ++r ) {
                 if(!rejects.contains(p) && land.buildable(rotations[r], new Cell(p.i, p.j)) ) {

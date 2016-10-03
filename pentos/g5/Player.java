@@ -116,7 +116,7 @@ public class Player implements pentos.sim.Player {
             Pair buildLocation;
             int rotation = 0;
 
-            if( lu.searchOptimalPlacement(bu, d, rejectLocations) ) {
+            if( lu.searchOptimalPlacement(bu, d, rejectLocations, STRATEGY) ) {
                 buildLocation = lu.returnPair;
                 rotation = lu.returnRotation;
             } else {
