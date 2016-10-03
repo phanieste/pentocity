@@ -136,6 +136,13 @@ public class Player implements pentos.sim.Player {
             for (Cell x : request.rotations()[rotation]){
                 shiftedCells.add(new Cell(x.i+startCell.i, x.j+startCell.j));
             }            // build a road to connect this building to perimeter
+            if (request.type == Building.Type.FACTORY) {
+                bonusCells = null;
+            } else {
+                if ((bonusCells = findShortestRoute(shiftedCells, land, "bonus", 4)) == null) {
+                    bonusCells = buildBonusGroup(shiftedCells, land);
+                }
+            }
 
             move = new Move(true, request, startCell, rotation,
                 new HashSet<Cell>(), new HashSet<Cell>(), new HashSet<Cell>());
@@ -150,7 +157,7 @@ public class Player implements pentos.sim.Player {
                 allBonusCells.addAll(bonusCells);
             }
             
-            roadCells = findShortestRoad(shiftedCells, land);
+            roadCells = findShortestRoute(shiftedCells, land, "road", -1);
             if( roadCells!=null ) {
                 move.road = roadCells;
                 allRoadCells.addAll(roadCells);
@@ -251,10 +258,10 @@ public class Player implements pentos.sim.Player {
            c = new Cell(i,j);
         else
             return false;
-        return (land.unoccupied(c) && !b.contains(c) && !occupied.contains(c));
+        return (!isOnPerimeter(c,land) && land.unoccupied(c) && !b.contains(c) && !occupied.contains(c));
     }
 
-    private Set<Cell> buildBonusGroup(Set<Cell> b, Pair location, Land land, BuildingUtil bu) {
+    private Set<Cell> buildBonusGroup(Set<Cell> b, Land land) {
         // System.out.println("buildBonusGroup");
         Set<Cell> output = new HashSet<Cell>();
 
@@ -264,9 +271,9 @@ public class Player implements pentos.sim.Player {
         else
             type = Cell.Type.WATER;
 
-        Iterator<Cell> it = bu.building.iterator();
-        Pair corner = bu.LowerRightCorner();
-        Cell c = new Cell(location.i+corner.i, location.j+corner.j);
+        Iterator<Cell> it = b.iterator();
+        Pair corner = BuildingUtil.LowerRightCorner(b);
+        Cell c = new Cell(corner.i, corner.j);
         while (output.size() < 4) {
             if (safeToBuild(c.i, c.j+1, land, b, output)) {
                 c = new Cell(c.i, c.j+1, type);
@@ -291,7 +298,7 @@ public class Player implements pentos.sim.Player {
                             return null;
                         }
                     }
-                    c = new Cell(location.i+next.i, location.j+next.j);
+                    c = new Cell(next.i, next.j);
                 } else {
                     return null;
                 }
@@ -305,8 +312,114 @@ public class Player implements pentos.sim.Player {
         }
     }
 
+    /* 
+     * Alternate findShortestRoute algo that starts from the building and looks out.
+     *   type (String): Should be "road" or "bonus" to indicate which is being looked for.
+     *   limit (int): Max depth to search to, -1 indicates no depth limit and the land side will
+     *       be used as the depth limit
+     * Referencing this stackoverflow post:
+     *   http://stackoverflow.com/questions/10258305/how-to-implement-a-breadth-first-search-to-a-certain-depth
+     */
+    private Set<Cell> findShortestRoute(Set<Cell> b, Land land, String type, int limit) {
+        // System.out.println("findShortestRoute " + type);
+        Set<Cell> output = new HashSet<Cell>();
+        boolean[][] checked = new boolean[land.side][land.side];
+        Queue<Cell> queue = new LinkedList<Cell>();
+
+        // counters for depth
+        int depth = 0;
+        if (limit < 0) {
+            limit = land.side;
+        }
+        int depthCountdown;
+        boolean increaseDepth = false;
+
+        Set<Cell> cellMap;
+        Set<Cell> altMap; 
+        if (type == "road") {
+            cellMap = allRoadCells;
+            altMap = allBonusCells;
+        } else {
+            cellMap = allBonusCells;
+            altMap = allRoadCells;
+        }
+
+        for (Cell p : b) {
+            if (type == "road" && isOnPerimeter(p,land)) {
+                return output;
+            }
+            for (Cell q : p.neighbors()) {
+                if (cellMap.contains(q))
+                    return output;
+                if (land.unoccupied(q.i,q.j) && !altMap.contains(q)) {
+                    q.previous = p;
+                    queue.add(q);
+                }
+            }
+        }
+
+        depthCountdown = queue.size();
+
+        while (!queue.isEmpty() && depth < limit) {
+            Cell p = queue.remove();
+            if (--depthCountdown == 0) {
+                depth++;
+                increaseDepth = true;
+            }
+            if (checked[p.i][p.j])
+                continue;
+            checked[p.i][p.j] = true;
+            if (type == "road" && isOnPerimeter(p,land)) {
+                Cell tail = p;
+                output.add(new Cell(p.i,p.j));
+                while (!b.contains(tail)) {
+                    output.add(new Cell(tail.i,tail.j));
+                    tail = tail.previous;
+                }
+                if (!output.isEmpty())
+                    return output;
+            }
+            else {
+                for (Cell x : p.neighbors()) {
+                    if (cellMap.contains(x)) {
+                        Cell.Type cellType;
+                        if (land.isPond(x)) {
+                            cellType = Cell.Type.WATER;
+                        } else if (land.isField(x)) {
+                            cellType = Cell.Type.PARK;
+                        } else {
+                            cellType = Cell.Type.ROAD;
+                        }
+
+                        Cell tail = p;
+                        output.add(new Cell(p.i,p.j,cellType));
+                        while (!b.contains(tail)) {
+                            output.add(new Cell(tail.i,tail.j,cellType));
+                            tail = tail.previous;
+                        }
+                        if (!output.isEmpty())
+                            return output;
+                    }
+                    else if (!checked[x.i][x.j] && land.unoccupied(x.i,x.j) && !altMap.contains(x)) {
+                        x.previous = p;
+                        if (increaseDepth) {
+                            depthCountdown = queue.size();
+                            increaseDepth = false;
+                        }
+                        queue.add(x);
+                    }
+                }
+            }
+        }
+        if ((output.isEmpty() && queue.isEmpty()) || depth == limit) {
+            return null;
+        }
+        else
+            return output;
+    }
+
     private Set<Cell> findShortestRoadAlt(Set<Cell> b, Land land) {
-        System.out.println("findShortestRoad");
+        // System.out.println("findShortestRoad");
         Set<Cell> output = new HashSet<Cell>();
         boolean[][] checked = new boolean[land.side][land.side];
         Queue<Cell> queue = new LinkedList<Cell>();

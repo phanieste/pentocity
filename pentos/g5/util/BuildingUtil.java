@@ -90,6 +90,20 @@ public class BuildingUtil {
     }
 
     // get the lowest rightmost corner of the building
+    public static Pair LowerRightCorner(Set<Cell> b) {
+        Pair corner = new Pair(0, 0);
+        for (Cell c : b) {
+            if (c.i > corner.i) {
+                corner.i = c.i;
+                corner.j = c.j;
+            } else if (c.i == corner.i && c.j > corner.j) {
+                corner.j = c.j;
+            }
+        }
+        return corner;
+    }
+
+    // get the lowest rightmost corner of the building
     public static Pair LowerRightCorner(Building building) {
         Pair corner = new Pair(0, 0);
         for (Cell c : building) {

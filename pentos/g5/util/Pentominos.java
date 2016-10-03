@@ -6,7 +6,7 @@ import java.util.HashSet;
 import pentos.sim.Land;
 import pentos.sim.Building;
 import pentos.sim.Cell;
-
+/*
 public class Pentominos implements pentos.sim.Sequencer {
 
     public static int [][][] indices = {
@@ -65,6 +65,7 @@ public class Pentominos implements pentos.sim.Sequencer {
         return current();
     }
 
+    
     public static void packTogether(Building b1, Building b2) {
         // init a new land of size 10x10
         Land l = null;
@@ -176,3 +177,4 @@ public class Pentominos implements pentos.sim.Sequencer {
     }
 
 }
+*/
