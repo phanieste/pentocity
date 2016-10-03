@@ -198,60 +198,6 @@ public class Player implements pentos.sim.Player {
         return (land.unoccupied(i,j) && !allBonusCells.contains(new Cell(i,j)));
     }
 
-    // find the nearest bonus cell
-    private Set<Cell> findNearestBonus(Set<Cell> b, Land land) {
-        // System.out.println("findNearestBonus");
-        Set<Cell> output = new HashSet<Cell>();
-        boolean[][] checked = new boolean[land.side][land.side];
-        Queue<Cell> queue = new LinkedList<Cell>();
-
-        for (Cell p : b) {
-            if (isOnPerimeter(p,land))
-                continue;
-            for (Cell q : p.neighbors()) {
-                if (allBonusCells.contains(q))
-                    return output;
-                if (land.unoccupied(q.i,q.j)) {
-                    q.previous = p;
-                    queue.add(q);
-                }
-            }
-        }
-
-        // find any nearby bonus cells
-        while (!queue.isEmpty()) {
-            Cell p = queue.remove();
-            if (checked[p.i][p.j])
-                continue;
-            checked[p.i][p.j] = true;
-            if (isOnPerimeter(p,land)) {
-                continue;
-            }
-            for (Cell x : p.neighbors()) {
-                if (allBonusCells.contains(x)) {
-                    Cell.Type type;
-                    if (land.isPond(x))
-                        type = Cell.Type.WATER;
-                    else
-                        type = Cell.Type.PARK;
-                    Cell tail = p;
-                    output.add(new Cell(p.i,p.j,type));
-                    while (!b.contains(tail)) {
-                        output.add(new Cell(tail.i,tail.j,type));
-                        tail = tail.previous;
-                    }
-                    if (!output.isEmpty())
-                        return output;
-                }
-            }
-        }
-        if (output.isEmpty() && queue.isEmpty()) {
-            return null;
-        }
-        else
-            return output;
-    }
-
     private boolean safeToBuild(int i, int j, Land land, Set<Cell> b, Set<Cell> occupied) {
         Cell c;
         if (i >= 0 && j >= 0 && i < land.side && j < land.side)
@@ -412,66 +358,6 @@ public class Player implements pentos.sim.Player {
             }
         }
         if ((output.isEmpty() && queue.isEmpty()) || depth == limit) {
-            return null;
-        }
-        else
-            return output;
-    }
-
-    private Set<Cell> findShortestRoadAlt(Set<Cell> b, Land land) {
-        // System.out.println("findShortestRoad");
-        Set<Cell> output = new HashSet<Cell>();
-        boolean[][] checked = new boolean[land.side][land.side];
-        Queue<Cell> queue = new LinkedList<Cell>();
-
-        for (Cell p : b) {
-            if (isOnPerimeter(p,land))
-                return output;
-            for (Cell q : p.neighbors()) {
-                if (allRoadCells.contains(q))
-                    return output;
-                if (land.unoccupied(q.i,q.j)) {
-                    q.previous = p;
-                    queue.add(q);
-                }
-            }
-        }
-
-        while (!queue.isEmpty()) {
-            Cell p = queue.remove();
-            if (checked[p.i][p.j])
-                continue;
-            checked[p.i][p.j] = true;
-            if (isOnPerimeter(p,land)) {
-                Cell tail = p;
-                output.add(new Cell(p.i,p.j));
-                while (!b.contains(tail)) {
-                    output.add(new Cell(tail.i,tail.j));
-                    tail = tail.previous;
-                }
-                if (!output.isEmpty())
-                    return output;
-            }
-            else {
-                for (Cell x : p.neighbors()) {
-                    if (allRoadCells.contains(x)) {
-                        Cell tail = p;
-                        output.add(new Cell(p.i,p.j));
-                        while (!b.contains(tail)) {
-                            output.add(new Cell(tail.i,tail.j));
-                            tail = tail.previous;
-                        }
-                        if (!output.isEmpty())
-                            return output;
-                    }
-                    else if (!checked[x.i][x.j] && land.unoccupied(x.i,x.j)) {
-                        x.previous = p;
-                        queue.add(x);
-                    }
-                }
-            }
-        }
-        if (output.isEmpty() && queue.isEmpty()) {
             return null;
         }
         else

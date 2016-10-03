@@ -10,6 +10,49 @@ public class Looper2D {
     // public Type type; 
     // public int size; // Ideally this should m, n
 
+    /*
+     * Note: has not actually been tested with m != n so using with such settings
+     * may have unintended consequences...
+     */
+    public static List<Pair> getDiag( int m, int n, boolean outwards) {
+        int numLoops = Math.min(m,n) - 1;
+        List<Pair> l = new ArrayList<Pair>();
+        Looper looper;
+        
+        int loop;
+        looper = new Looper(0, numLoops*2, 1);
+
+        while (looper.hasNext()) {
+            loop = looper.next();
+
+            if (loop <= numLoops) {
+                int i = loop;
+                int j = 0;
+                for (; j <= loop; j++) {
+                    i = loop - j;
+                    if (outwards) {
+                        l.add(new Pair(numLoops - i, numLoops - j));
+                    } else {
+                        l.add(new Pair(i,j));
+                    }
+                }
+            } 
+            else {
+                int i = numLoops;
+                int j = loop - numLoops;
+                for (; j<= numLoops; j++) {
+                    i = loop - j;
+                    if (outwards) {
+                        l.add(new Pair(numLoops - i, numLoops - j));
+                    } else {
+                        l.add(new Pair(i,j));
+                    }
+                }
+            }
+        }
+        return l;
+    }
+
     public static List<Pair> getSpiral( int m, int n, boolean outwards ) {
 
         int numLoops = (Math.min(m,n)+1)/2;

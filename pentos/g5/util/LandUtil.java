@@ -102,7 +102,8 @@ public class LandUtil {
         Building[] rotations = null;
         // Building r = null;
 
-        for( Pair p : Looper2D.getSpiral( size.i, size.j, dir==Direction.OUTWARDS )) {
+        // for( Pair p : Looper2D.getSpiral( size.i, size.j, dir==Direction.OUTWARDS )) {
+        for( Pair p : Looper2D.getDiag( size.i, size.j, dir==Direction.OUTWARDS )) {
             rotations = bu.building.rotations();
             for( int r=0; r < rotations.length; ++r ) {
                 if(!rejects.contains(p) && land.buildable(rotations[r], new Cell(p.i, p.j)) ) {
