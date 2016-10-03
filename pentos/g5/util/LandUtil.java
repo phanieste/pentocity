@@ -89,7 +89,7 @@ public class LandUtil {
 
         Pair[] buildingHull = bu.Hull();
         Pair size = new Pair(land.side, land.side);
-        size.subtract( buildingHull[1] );
+        // size.subtract( buildingHull[1] );
         MinAndArgMin<Pair> indexWiseLocations = new MinAndArgMin<Pair>();
         MinAndArgMin<Integer> indexWiseRotations = new MinAndArgMin<Integer>();
 
@@ -103,7 +103,7 @@ public class LandUtil {
         // Building r = null;
 
         // for( Pair p : Looper2D.getSpiral( size.i, size.j, dir==Direction.OUTWARDS )) {
-        for( Pair p : Looper2D.getDiag( size.i, size.j, dir==Direction.OUTWARDS )) {
+        for( Pair p : Looper2D.getCorner( size.i, size.j, dir==Direction.OUTWARDS )) {
             rotations = bu.building.rotations();
             for( int r=0; r < rotations.length; ++r ) {
                 if(!rejects.contains(p) && land.buildable(rotations[r], new Cell(p.i, p.j)) ) {

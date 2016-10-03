@@ -14,13 +14,13 @@ public class Looper2D {
      * Note: has not actually been tested with m != n so using with such settings
      * may have unintended consequences...
      */
-    public static List<Pair> getDiag( int m, int n, boolean outwards) {
+    public static List<Pair> getCorner( int m, int n, boolean outwards) {
         int numLoops = Math.min(m,n) - 1;
         List<Pair> l = new ArrayList<Pair>();
         Looper looper;
         
         int loop;
-        looper = new Looper(0, numLoops*2, 1);
+        looper = new Looper(0, numLoops*2+1, 1);
 
         while (looper.hasNext()) {
             loop = looper.next();
@@ -127,6 +127,26 @@ public class Looper2D {
 
         System.out.println(StringUtil.toString(buf, "\n"));
 
+        StringUtil.init(buf, ' ');
+        counter = 0;
 
+        // Looper2D l2d = new Looper2D();
+        for( Pair p : Looper2D.getCorner(3,6,true)) {
+            buf[p.i][p.j] = (char)('0'+(counter++)%10);
+            // System.out.println( p.toString() );
+        }
+
+        System.out.println(StringUtil.toString(buf, "\n"));
+
+        StringUtil.init(buf, ' ');
+        counter = 0;
+
+        // Looper2D l2d = new Looper2D();
+        for( Pair p : Looper2D.getCorner(6,6,false)) {
+            buf[p.i][p.j] = (char)('0'+(counter++)%10);
+            // System.out.println( p.toString() );
+        }
+
+        System.out.println(StringUtil.toString(buf, "\n"));
     }
 }
