@@ -139,7 +139,7 @@ public class Player implements pentos.sim.Player {
             if (request.type == Building.Type.FACTORY) {
                 bonusCells = null;
             } else {
-                if ((bonusCells = findShortestRoute(shiftedCells, land, "bonus", 4)) == null) {
+                if ((bonusCells = findShortestRoute(shiftedCells, land, "bonus", 2)) == null) {
                     bonusCells = buildBonusGroup(shiftedCells, land);
                 }
             }
