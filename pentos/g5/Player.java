@@ -15,8 +15,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.Properties;
 
-import pentos.g5.util.BuildingUtil;
-import pentos.g5.util.Pair;
+import pentos.g5.util.BuildingUtil; import pentos.g5.util.Pair;
 
 public class Player implements pentos.sim.Player {
 
@@ -31,6 +30,7 @@ public class Player implements pentos.sim.Player {
 
     private Random gen = new Random();
     private Set<Cell> allRoadCells = new HashSet<Cell>();
+    private Set<Cell> allBonusCells = new HashSet<Cell>();
 
     public void init() { // function is called once at the beginning before play is called
         if( !getProperties() ) {
@@ -93,6 +93,7 @@ public class Player implements pentos.sim.Player {
     private Building lastRequest;
     private Pair[] lastHull;
     private Pair lastBuildLocation;
+    private String lastBonusType; // track if last bonus was park or water
 
     private Move playCore(Building request, Land land) {
         // Build a residence
@@ -108,26 +109,22 @@ public class Player implements pentos.sim.Player {
 
         Set<Pair> rejectLocations = new HashSet<Pair>();
         Set<Cell> roadCells = null;
+        Set<Cell> bonusCells = null;
         Move move = new Move(false);
 
         while (roadCells == null && rejectLocations.size() < MAX_REJECTS) {
             Pair buildLocation;
-            if (STRATEGY == Strategy.SPIRAL)
-                buildLocation = lu.getCup(bu, d, rejectLocations);
-            else
-                buildLocation = lu.getDiag(bu, d, rejectLocations);
+            int rotation = 0;
 
-            if((buildLocation.i < 0) || (buildLocation.j < 0)) {
+            if( lu.searchOptimalPlacement(bu, d, rejectLocations) ) {
+                buildLocation = lu.returnPair;
+                rotation = lu.returnRotation;
+            } else {
                 lastRequest = request;
                 return new Move(false);
             }
+
             Cell startCell = new Cell(buildLocation.i, buildLocation.j);
-
-            int rotation = 0;
-
-            // DEBUG System.err.println( "Build:" + hull[0] + hull[1]);
-            // DEBUG System.err.println( BuildingUtil.toString(request) );
-            // DEBUG System.err.println( "At:" + buildLocation );
 
             lastRequest = request;
             lastHull = hull;
@@ -139,61 +136,40 @@ public class Player implements pentos.sim.Player {
             for (Cell x : request.rotations()[rotation]){
                 shiftedCells.add(new Cell(x.i+startCell.i, x.j+startCell.j));
             }            // build a road to connect this building to perimeter
-            roadCells = findShortestRoad(shiftedCells, land);
 
             move = new Move(true, request, startCell, rotation,
                 new HashSet<Cell>(), new HashSet<Cell>(), new HashSet<Cell>());
+            if (bonusCells != null && !bonusCells.isEmpty()) {
+                if (bonusCells.iterator().next().isWater()) {
+                    move.water = bonusCells;
+                    lastBonusType = "POND";
+                } else {
+                    move.park = bonusCells;
+                    lastBonusType = "FIELD";
+                }
+                allBonusCells.addAll(bonusCells);
+            }
+            
+            roadCells = findShortestRoad(shiftedCells, land);
             if( roadCells!=null ) {
                 move.road = roadCells;
                 allRoadCells.addAll(roadCells);
                 lastNumRoadCells = roadCells.size();
             } else {
+                if (bonusCells != null)
+                    allBonusCells.removeAll(bonusCells);
                 rejectLocations.add(buildLocation);
                 move = new Move(false);
             }
         }
 
-        // for(Building r : rotations ) {
-        //     System.out.println( "Rotation:\n" + BuildingUtil.toString(r) );
-        // }
-
-        // Locate the location of first spiral where this home is possible.
-        // * cannot build on a reserved piece of road that connects the inside
-
-        // Build Connecting Road to location
-
-        // Try to optimize with parks and ponds
-        // * Do we need to put parks and ponds before the residence is built?
-
         return move;
-    }
-
-    private Move playFactory(Building request, Land land) {
-        // Build a factory
-
-        // Locate the location of first outward spiral where this Factory is possible.
-
-        // Build Connecting Road to location
-
-        return new Move(false);
     }
 
     public Move play(Building request, Land land) {
         numRequests += 1;
-
         Move move = playCore(request, land);
-
-        if(move.accept) {
-            if( false ){
-                // System.out.println( lastRequest.toString1() );
-                // try {
-                //     System.in.read();
-                // } catch (Exception e) {
-
-                // }
-                
-            }
-        } else {
+        if(!move.accept) {
             System.out.println("Request number      : "+numRequests);
             System.out.println("Road cells built    : "+lastNumRoadCells);
             System.out.println("At                  : " + lastBuildLocation );
@@ -202,14 +178,131 @@ public class Player implements pentos.sim.Player {
             System.out.println("Status              : Rejecting Request");
             System.out.println( BuildingUtil.toString(lastRequest) );
         }
-
         return move;
-
     }
 
     // check if cell is on perimeter
     private boolean isOnPerimeter(Cell c, Land land) {
         return (c.i == 0 || c.j == 0 || c.i == land.side-1 || c.j == land.side-1);
+    }
+
+    // check if cell is truly unoccupied (also checks any placed bonus cells)
+    private boolean isUnoccupied(int i, int j, Land land) {
+        return (land.unoccupied(i,j) && !allBonusCells.contains(new Cell(i,j)));
+    }
+
+    // find the nearest bonus cell
+    private Set<Cell> findNearestBonus(Set<Cell> b, Land land) {
+        // System.out.println("findNearestBonus");
+        Set<Cell> output = new HashSet<Cell>();
+        boolean[][] checked = new boolean[land.side][land.side];
+        Queue<Cell> queue = new LinkedList<Cell>();
+
+        for (Cell p : b) {
+            if (isOnPerimeter(p,land))
+                continue;
+            for (Cell q : p.neighbors()) {
+                if (allBonusCells.contains(q))
+                    return output;
+                if (land.unoccupied(q.i,q.j)) {
+                    q.previous = p;
+                    queue.add(q);
+                }
+            }
+        }
+
+        // find any nearby bonus cells
+        while (!queue.isEmpty()) {
+            Cell p = queue.remove();
+            if (checked[p.i][p.j])
+                continue;
+            checked[p.i][p.j] = true;
+            if (isOnPerimeter(p,land)) {
+                continue;
+            }
+            for (Cell x : p.neighbors()) {
+                if (allBonusCells.contains(x)) {
+                    Cell.Type type;
+                    if (land.isPond(x))
+                        type = Cell.Type.WATER;
+                    else
+                        type = Cell.Type.PARK;
+                    Cell tail = p;
+                    output.add(new Cell(p.i,p.j,type));
+                    while (!b.contains(tail)) {
+                        output.add(new Cell(tail.i,tail.j,type));
+                        tail = tail.previous;
+                    }
+                    if (!output.isEmpty())
+                        return output;
+                }
+            }
+        }
+        if (output.isEmpty() && queue.isEmpty()) {
+            return null;
+        }
+        else
+            return output;
+    }
+
+    private boolean safeToBuild(int i, int j, Land land, Set<Cell> b, Set<Cell> occupied) {
+        Cell c;
+        if (i >= 0 && j >= 0 && i < land.side && j < land.side)
+           c = new Cell(i,j);
+        else
+            return false;
+        return (land.unoccupied(c) && !b.contains(c) && !occupied.contains(c));
+    }
+
+    private Set<Cell> buildBonusGroup(Set<Cell> b, Pair location, Land land, BuildingUtil bu) {
+        // System.out.println("buildBonusGroup");
+        Set<Cell> output = new HashSet<Cell>();
+
+        Cell.Type type;
+        if (lastBonusType == "POND")
+            type = Cell.Type.PARK;
+        else
+            type = Cell.Type.WATER;
+
+        Iterator<Cell> it = bu.building.iterator();
+        Pair corner = bu.LowerRightCorner();
+        Cell c = new Cell(location.i+corner.i, location.j+corner.j);
+        while (output.size() < 4) {
+            if (safeToBuild(c.i, c.j+1, land, b, output)) {
+                c = new Cell(c.i, c.j+1, type);
+                output.add(c);
+            } else if (safeToBuild(c.i+1, c.j, land, b, output)) {
+                c = new Cell(c.i+1, c.j, type);
+                output.add(c);
+            } else if (safeToBuild(c.i-1, c.j, land, b, output)) {
+                c = new Cell(c.i-1, c.j, type);
+                output.add(c);
+            } else if (safeToBuild(c.i, c.j-1, land, b, output)) {
+                c = new Cell(c.i, c.j-1, type);
+                output.add(c);
+            } else {
+                output.clear();
+                if (it.hasNext()) {
+                    Cell next = it.next();
+                    if (new Pair(next.i,next.j) == corner) {
+                        if (it.hasNext()) {
+                            next = it.next();
+                        } else {
+                            return null;
+                        }
+                    }
+                    c = new Cell(location.i+next.i, location.j+next.j);
+                } else {
+                    return null;
+                }
+            }
+        }
+
+        if (output.size() >= 4) {
+            return output;
+        } else {
+            return null;
+        }
     }
 
     private Set<Cell> findShortestRoadAlt(Set<Cell> b, Land land) {
@@ -283,13 +376,13 @@ public class Player implements pentos.sim.Player {
         for (int z=0; z<land.side; z++) {
             if (b.contains(new Cell(0,z)) || b.contains(new Cell(z,0)) || b.contains(new Cell(land.side-1,z)) || b.contains(new Cell(z,land.side-1))) //if already on border don't build any roads
                 return output;
-            if (land.unoccupied(0,z))
+            if (isUnoccupied(0,z,land))
                 queue.add(new Cell(0,z,source));
-            if (land.unoccupied(z,0))
+            if (isUnoccupied(z,0,land))
                 queue.add(new Cell(z,0,source));
-            if (land.unoccupied(z,land.side-1))
+            if (isUnoccupied(z,land.side-1,land))
                 queue.add(new Cell(z,land.side-1,source));
-            if (land.unoccupied(land.side-1,z))
+            if (isUnoccupied(land.side-1,z,land))
                 queue.add(new Cell(land.side-1,z,source));
         }
         // add cells adjacent to current road cells
@@ -297,7 +390,7 @@ public class Player implements pentos.sim.Player {
             for (Cell q : p.neighbors()) {
                 if (b.contains(q)) {
                     return output; // adjacent to a road cell already
-                } else if (!allRoadCells.contains(q) && land.unoccupied(q)) {
+                } else if (!allRoadCells.contains(q) && isUnoccupied(q.i,q.j,land)) {
                     queue.add(new Cell(q.i,q.j,p)); // use tail field of cell to keep track of previous road cell during the search
                 }
             }
@@ -317,7 +410,7 @@ public class Player implements pentos.sim.Player {
                     if (!output.isEmpty())
                         return output;
                 }
-                else if (!checked[x.i][x.j] && land.unoccupied(x.i,x.j)) {
+                else if (!checked[x.i][x.j] && isUnoccupied(x.i,x.j,land)) {
                     x.previous = p;
                     queue.add(x);
                 } 

@@ -13,6 +13,19 @@ public class BuildingUtil {
         building = b;
     }
 
+    public static void toString1(Building building, char[][] buf, char occupied){
+        toString1(building, buf, occupied, new Pair(0,0));
+    }
+
+    public static void toString1(Building building, char[][] buf, char occupied, Pair offset){
+
+        for (Cell p : building) {
+            buf[p.i + offset.i][p.j + offset.j] = occupied;
+        }
+
+        return;
+    }
+
     public static String toString(Building building){
         int mini = 0;
         int maxi = 0;
@@ -53,7 +66,8 @@ public class BuildingUtil {
         return BuildingUtil.toString( building );
     }
 
-    public Pair[] Hull() {
+    public static Pair[] Hull(Building building) {
+
         Iterator<Cell> it = building.iterator();
         Pair start = new Pair(Integer.MAX_VALUE, Integer.MAX_VALUE);
         Pair end = new Pair(Integer.MIN_VALUE, Integer.MIN_VALUE);
@@ -73,6 +87,28 @@ public class BuildingUtil {
             }
         }
         return hull;
+    }
+
+    // get the lowest rightmost corner of the building
+    public static Pair LowerRightCorner(Building building) {
+        Pair corner = new Pair(0, 0);
+        for (Cell c : building) {
+            if (c.i > corner.i) {
+                corner.i = c.i;
+                corner.j = c.j;
+            } else if (c.i == corner.i && c.j > corner.j) {
+                corner.j = c.j;
+            }
+        }
+        return corner;
+    }
+
+    public Pair[] Hull() {
+        return BuildingUtil.Hull( building );
+    }
+
+    public Pair LowerRightCorner() {
+        return BuildingUtil.LowerRightCorner(building);
     }
 
 }

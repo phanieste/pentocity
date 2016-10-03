@@ -5,12 +5,12 @@ import java.util.*;
 public class Cell implements Comparable <Cell> {
 
     public enum Type {EMPTY, RESIDENCE, FACTORY, PARK, WATER, ROAD};
-    private static final int default_land_side = 50;
+    public static final int default_land_side = 50;
     public final int i;  // row
     public final int j;  // column
+    public final Type type;    
     public Cell previous; // pointer to another cell, use for graph searches
-    protected Type type;
-
+    
     public Cell(int i, int j) {
 	this(i,j,Cell.Type.EMPTY);
     }
@@ -78,17 +78,19 @@ public class Cell implements Comparable <Cell> {
     }
 
     //for simulator to build stuff
-    protected void buildRoad() {buildType(Type.ROAD);    }
-    protected void buildWater() {buildType(Type.WATER);    }
-    protected void buildPark() {buildType(Type.PARK);    }
-    protected void buildResidence() {buildType(Type.RESIDENCE);    }
-    protected void buildFactory() {buildType(Type.FACTORY);    }
+    protected Cell buildRoad() {return buildType(Type.ROAD);    }
+    protected Cell buildWater() {return buildType(Type.WATER);    }
+    protected Cell buildPark() {return buildType(Type.PARK);    }
+    protected Cell buildResidence() {return buildType(Type.RESIDENCE);    }
+    protected Cell buildFactory() {return buildType(Type.FACTORY);    }
 
-    private void buildType(Type t) {
+    private Cell buildType(Type t) {
 	if (type != Type.EMPTY) {
 	    throw new RuntimeException("Land not empty. Contains " + type);
 	}
-	this.type = t;
+	else {
+	    return new Cell(i, j, t);
+	}
     }
 
     public boolean isType(Type t) {

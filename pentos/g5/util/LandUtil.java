@@ -4,6 +4,7 @@ import java.util.*;
 
 import pentos.sim.Land;
 import pentos.sim.Cell;
+import pentos.sim.Building;
 
 public class LandUtil {
 
@@ -11,6 +12,9 @@ public class LandUtil {
 
     public Land land;
     public int lastLoopLevel;
+
+    public Pair returnPair;
+    public int returnRotation;
 
     public LandUtil(Land l) {
         land = l;
@@ -79,72 +83,41 @@ public class LandUtil {
         return new Pair(-1, -1);
     }
 
-    public Pair getCup(BuildingUtil bu, Direction dir, Set<Pair> rejects) {
+    public boolean searchOptimalPlacement(BuildingUtil bu, Direction dir, Set<Pair> rejects) {
+
+        int count = 0;
 
         Pair[] buildingHull = bu.Hull();
+        Pair size = new Pair(land.side, land.side);
+        size.subtract( buildingHull[1] );
+        MinAndArgMin<Pair> indexWiseLocations = new MinAndArgMin<Pair>();
+        MinAndArgMin<Integer> indexWiseRotations = new MinAndArgMin<Integer>();
 
-        int numLoops = (land.side+1) / 2;
-        int maxI = land.side - buildingHull[1].i;
-        int maxJ = land.side - buildingHull[1].j;
-        int midI = (int) Math.ceil(maxI / 2.0);
+        // MinAndArgMin<Pair> otherWiseLocations = new MinAndArgMin<Pair>();
+        // MinAndArgMin<Integer> otherWiseRotations = new MinAndArgMin<Integer>();
 
-        Looper looper;
-        if( LandUtil.Direction.OUTWARDS == dir ) {
-            looper = new Looper(numLoops-1, 0, -1);
-        } else {
-            looper = new Looper(0, numLoops-1, 1);
-        }
+        // MinAndArgMin<Pair> otherWiseLocations = new MinAndArgMin<Pair>();
+        // MinAndArgMin<Integer> otherWiseRotations = new MinAndArgMin<Integer>();
 
-        // for(int loop=0; loop < numLoops ; ++loop ) {
-        int loop;
-        while(looper.hasNext()) {
-            loop = looper.next();
-            lastLoopLevel = loop;
+        Building[] rotations = null;
+        // Building r = null;
 
-            // DEBUG System.err.println("Trying to build at level: "+loop);
-            int i = midI-(buildingHull[1].i+1);
-            int j = loop;
-            for(; i > loop; --i) {
-                // System.out.println(new Pair(i,j));
-                Pair loc = new Pair(i, j);
-                if((!rejects.contains(loc) && land.buildable( bu.building, new Cell(i,j)))) {
-                    return loc;
-                }
-            }
-            assert (i == loop);
-            assert (j == loop);
-            for(; j< maxJ - loop; ++j) {
-                // System.out.println(new Pair(i,j));
-                Pair loc = new Pair(i, j);
-                if((!rejects.contains(loc) && land.buildable( bu.building, new Cell(i,j)))) {
-                    return loc;
-                }
-            }   // Traverse all in the top row
-            for(; i< maxI - loop; ++i) {
-                // System.out.println(new Pair(i,j));
-                Pair loc = new Pair(i, j);
-                if((!rejects.contains(loc) && land.buildable( bu.building, new Cell(i,j)))) {
-                    return loc;
-                }
-            }   // Traverse all in the left column
-            for(; j>loop; --j) {
-                // System.out.println(new Pair(i,j));
-                Pair loc = new Pair(i, j);
-                if((!rejects.contains(loc) && land.buildable( bu.building, new Cell(i,j)))) {
-                    return loc;
-                }
-            }
-            assert (i == maxI-loop);
-            assert (j == loop);
-            for(; i > midI; --i) {
-                // System.out.println(new Pair(i,j));
-                Pair loc = new Pair(i, j);
-                if((!rejects.contains(loc) && land.buildable( bu.building, new Cell(i,j)))) {
-                    return loc;
+        for( Pair p : Looper2D.getSpiral( size.i, size.j, dir==Direction.OUTWARDS )) {
+            rotations = bu.building.rotations();
+            for( int r=0; r < rotations.length; ++r ) {
+                if(!rejects.contains(p) && land.buildable(rotations[r], new Cell(p.i, p.j)) ) {
+                    indexWiseLocations.consider( count, p);
+                    indexWiseRotations.consider( count, r);
                 }
             }
         }
-        return new Pair(-1,-1);
+
+        if(indexWiseLocations.idxMin >= 0){
+            returnPair = indexWiseLocations.argMin;
+            returnRotation = indexWiseRotations.argMin;
+            return true;
+        }
+        return false;
     }
 
 }
