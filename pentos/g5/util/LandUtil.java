@@ -34,8 +34,8 @@ public class LandUtil {
         MinAndArgMin<Pair> smoothnessWiseLocations = new MinAndArgMin<Pair>();
         MinAndArgMin<Integer> smoothnessWiseRotations = new MinAndArgMin<Integer>();
 
-        // MinAndArgMin<Pair> otherWiseLocations = new MinAndArgMin<Pair>();
-        // MinAndArgMin<Integer> otherWiseRotations = new MinAndArgMin<Integer>();
+        MinAndArgMin<Pair> roadnessWiseLocations = new MinAndArgMin<Pair>();
+        MinAndArgMin<Integer> roadnessWiseRotations = new MinAndArgMin<Integer>();
 
         Building[] rotations = null;
         // Building r = null;
