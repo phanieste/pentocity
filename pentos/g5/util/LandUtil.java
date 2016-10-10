@@ -34,8 +34,8 @@ public class LandUtil {
         MinAndArgMin<Pair> smoothnessWiseLocations = new MinAndArgMin<Pair>();
         MinAndArgMin<Integer> smoothnessWiseRotations = new MinAndArgMin<Integer>();
 
-        // MinAndArgMin<Pair> otherWiseLocations = new MinAndArgMin<Pair>();
-        // MinAndArgMin<Integer> otherWiseRotations = new MinAndArgMin<Integer>();
+        MinAndArgMin<Pair> roadnessWiseLocations = new MinAndArgMin<Pair>();
+        MinAndArgMin<Integer> roadnessWiseRotations = new MinAndArgMin<Integer>();
 
         Building[] rotations = null;
         // Building r = null;
@@ -57,18 +57,21 @@ public class LandUtil {
             for( int r=0; r < rotations.length; ++r ) {
                 if(!rejects.contains(p) && land.buildable(rotations[r], new Cell(p.i, p.j)) ) {
                     int smoothScore = this.smoothness(rotations[r], p);
+                    int roadConnectedness = this.roadness(rotations[r], p);
                     // DEBUG System.out.println("smooth score = " + smoothScore + " for rotation " + r);
                     smoothnessWiseLocations.consider(smoothScore, p);
                     smoothnessWiseRotations.consider(smoothScore, r);
+                    roadnessWiseLocations.consider(roadConnectedness, p);
+                    roadnessWiseRotations.consider(roadConnectedness, r);
                     indexWiseLocations.consider( count, p);
                     indexWiseRotations.consider( count, r);
                 }
             }
         }
 
-        if(indexWiseLocations.idxMin >= 0){
-            returnPair = indexWiseLocations.argMin;
-            returnRotation = indexWiseRotations.argMin;
+        if(smoothnessWiseLocations.idxMin >= 0){
+            returnPair = smoothnessWiseLocations.argMin;
+            returnRotation = smoothnessWiseRotations.argMin;
             return true;
         }
         return false;
@@ -110,6 +113,43 @@ public class LandUtil {
                         }
                     }
                 }
+    	    }
+        }
+        return score;
+    }
+    
+    private int roadness(Building bu, Pair p) {
+        
+        Iterator<Cell> iter = bu.iterator();
+        Set<Cell> buildingCells = new HashSet<Cell>();
+        while (iter.hasNext()) {
+            Cell bCell = iter.next();
+            buildingCells.add(new Cell(bCell.i + p.i, bCell.j + p.j));
+        }
+
+        int score = 0;
+        for (int i = 0 ; i < land.side ; i++) {
+    	    for (int j = 0 ; j < land.side ; j++) {
+    		    Cell curr = new Cell(i, j);
+
+                if (buildingCells.contains(curr)) {
+                    Cell[] neighbors = curr.neighbors();
+                    for (Cell neighbor : neighbors) {
+                        if (!buildingCells.contains(neighbor)) {
+                            if (neighbor.isRoad()) {
+                                score++;
+                            }
+                        }
+                    }
+                }
+                // } else if (!this.land.unoccupied(curr)) {
+                //     Cell[] neighbors = curr.neighbors();
+                //     for (Cell neighbor : neighbors) {
+                //         if (neighbor.isEmpty() && !buildingCells.contains(neighbor)) {
+                //             score++;
+                //         }
+                //     }
+                // }
     	    }
         }
         return score;

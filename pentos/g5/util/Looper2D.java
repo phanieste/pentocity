@@ -94,7 +94,7 @@ public class Looper2D {
             assert (i == (m-1)-loop);
             assert (j == loop);
 
-            for(; i > (m/2); --i) {
+            for(; i > (m/2)-1; --i) {
                 l.add( new Pair(i,j) );
             }
         }
