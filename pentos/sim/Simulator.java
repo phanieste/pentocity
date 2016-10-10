@@ -22,7 +22,7 @@ class Simulator {
 	Class <Player> g_class = null;
 	Class <Sequencer> s_class = null;
 	String sequencer = "random";
-	long cpu_time_ms = 300 * 1000;
+	long cpu_time_ms = 5 * 300 * 1000;
 	String tournament_path = null;
 	// long[] timeout = new long [] {1000, 10000, 1000};
 	long gui_refresh = 250;
@@ -91,11 +91,11 @@ class Simulator {
 	}
 	if (tournament_path == null) {
 	    System.err.println("Player " + group + " scored " + score.get());
-	    if (timeout) 
+	    if (timeout)
 		System.err.println("Player timed out!");
 	} else {
 	    PrintStream file = new PrintStream(new FileOutputStream(tournament_path, true));
-	    file.println(group + "," + score.get() + "," + (timeout == true ? "yes" : "no"));			 
+	    file.println(group + "," + score.get() + "," + (timeout == true ? "yes" : "no"));
 	    file.close();
 	}
 	System.exit(0);
@@ -204,7 +204,7 @@ class Simulator {
 		Iterator<Cell> water_cells = move.water.iterator();
 		Iterator<Cell> park_cells = move.park.iterator();
 		Iterator<Cell> road_cells = move.road.iterator();
-		String roadCells = "";		
+		String roadCells = "";
 		while (water_cells.hasNext())
 		    land.buildWater(water_cells.next());
 		while (park_cells.hasNext())
@@ -214,9 +214,9 @@ class Simulator {
 		    roadCells = roadCells + " " + x.i + "," + x.j;
 		}
 		road_cells = move.road.iterator();
-		while (road_cells.hasNext()) 
+		while (road_cells.hasNext())
 		    land.buildRoad(road_cells.next());
-		if (!land.validateRoads()) 
+		if (!land.validateRoads())
 		    throw new RuntimeException("Roads not connected");
 		String buildingCells = "";
 		for (Cell p : rotated_building)
@@ -226,7 +226,7 @@ class Simulator {
 		    throw new RuntimeException("Invalid building placement");
 		if (log)
 		    System.err.println("Player " + group + " built building on cells" + buildingCells + " and scored " + delta + ".");
-		score.addAndGet(delta); 	
+		score.addAndGet(delta);
 		if (!gui) continue;
 		moves.add(move);
 		gui(server, state(group, score, timer.time(), moves, gui_refresh, -1));
@@ -254,10 +254,10 @@ class Simulator {
 	    buf.append("s");
 	    buf.append(Cell.toString(m.road));
 	    buf.append("\n");
-	    buf.append("s");	    
+	    buf.append("s");
 	    buf.append(Cell.toString(m.park));
 	    buf.append("\n");
-	    buf.append("s");	    
+	    buf.append("s");
 	    buf.append(Cell.toString(m.water));
 	    buf.append("\n");
 	}
@@ -340,7 +340,7 @@ class Simulator {
 	}
 	return last_date;
     }
-    
+
     // compile and load
     private static Class <Player> load_player(String group) throws IOException, ReflectiveOperationException {
 	String sep = File.separator;
@@ -376,7 +376,7 @@ class Simulator {
     }
 
     private static Class <Sequencer> load_sequencer(String sequencer) throws IOException, ReflectiveOperationException {
-    
+
 	String sep = File.separator;
 	Set <File> sequencer_files = directory(root + sep + sequencer, ".java");
 	File class_file = new File(root + sep + sequencer + sep + "Sequencer.class");
