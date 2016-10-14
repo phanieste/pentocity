@@ -187,15 +187,15 @@ public class Player implements pentos.sim.Player {
     public Move play(Building request, Land land) {
         numRequests += 1;
         Move move = playCore(request, land);
-        if(!move.accept) {
-            System.out.println("Request number      : "+numRequests);
-            System.out.println("Road cells built    : "+lastNumRoadCells);
-            System.out.println("At                  : " + lastBuildLocation );
-            System.out.println("Reached             : " + lastLoopLevel );
-            System.out.println("Building            : " + lastHull[0] + lastHull[1]);
-            System.out.println("Status              : Rejecting Request");
-            System.out.println( BuildingUtil.toString(lastRequest) );
-        }
+        // if(!move.accept) {
+        //     System.out.println("Request number      : "+numRequests);
+        //     System.out.println("Road cells built    : "+lastNumRoadCells);
+        //     System.out.println("At                  : " + lastBuildLocation );
+        //     System.out.println("Reached             : " + lastLoopLevel );
+        //     System.out.println("Building            : " + lastHull[0] + lastHull[1]);
+        //     System.out.println("Status              : Rejecting Request");
+        //     System.out.println( BuildingUtil.toString(lastRequest) );
+        // }
         return move;
     }
 
