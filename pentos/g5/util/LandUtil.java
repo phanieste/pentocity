@@ -70,8 +70,8 @@ public class LandUtil {
             for( int r=0; r < rotations.length; ++r ) {
                 if(!rejects.contains(p) && land.buildable(rotations[r], new Cell(p.i, p.j)) ) {
                     // int smoothScore = this.smoothness(rotations[r], p);
-                    int roadConnectedness = this.roadness(rotations[r], p);
-                    smoothnessSpace.consider(roadConnectedness, new SearchSpace(p, r));
+                    int smoothScore = this.smoothness(rotations[r], p);
+                    smoothnessSpace.consider(smoothScore, new SearchSpace(p, r));
                     // DEBUG System.out.println("smooth score = " + smoothScore + " for rotation " + r);
                     // smoothnessWiseLocations.consider(smoothScore, p);
                     // smoothnessWiseRotations.consider(smoothScore, r);
@@ -93,19 +93,19 @@ public class LandUtil {
             returnPair = smoothnessSpace.argMin.pair;
             returnRotation = smoothnessSpace.argMin.rotation;
 
-            MinAndArgMin<SearchSpace> roadnessSpace = new MinAndArgMin<SearchSpace> ();
+            // MinAndArgMin<SearchSpace> roadnessSpace = new MinAndArgMin<SearchSpace> ();
 
-            for( SearchSpace s : smoothnessSpace.argsMin ) {
-                int smoothScore = this.smoothness(rotations[s.rotation], s.pair);
-                // int roadConnectedness = this.roadness(rotations[s.rotation], s.pair);
-                roadnessSpace.consider(smoothScore, s);
-            }
+            // for( SearchSpace s : smoothnessSpace.argsMin ) {
+            //     int smoothScore = this.smoothness(rotations[s.rotation], s.pair);
+            //     // int roadConnectedness = this.roadness(rotations[s.rotation], s.pair);
+            //     roadnessSpace.consider(smoothScore, s);
+            // }
 
-            if( roadnessSpace.idxMin >= 0 ) {
-                returnPair = roadnessSpace.argMin.pair;
-                returnRotation = roadnessSpace.argMin.rotation;
-                return true;
-            }
+            // if( roadnessSpace.idxMin >= 0 ) {
+            //     returnPair = roadnessSpace.argMin.pair;
+            //     returnRotation = roadnessSpace.argMin.rotation;
+            //     return true;
+            // }
 
             return true;
 
