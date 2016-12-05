@@ -10,6 +10,32 @@ public class Looper2D {
     // public Type type; 
     // public int size; // Ideally this should m, n
 
+    public static List<Pair> getFour( int m, int n, int w, boolean outwards) {
+        List<Pair> l = new ArrayList<Pair>();
+        int i=m/4;
+        int j=0;
+        int k=0;
+        for(j=0; j<n/2; ++j) {
+            for(k=-w; k<w; ++k){
+                l.add(new Pair(j, i+k));
+            }
+        }
+        for(; i < 3*m/4; ++i) {
+            for(k=-w; k<w; ++k){
+                l.add(new Pair(j+k, i));
+            }
+        }
+        for(j=0; j<n; ++j) {
+            for(k=-w; k<w; ++k){
+                l.add(new Pair(j, i+k));
+            }
+        }
+        return l;
+        // if( outwards )
+        // List<Pair> shallowCopy = l.subList(0, l.size());
+        // return Collections.reverse(shallowCopy);
+    }
+
     /*
      * Note: has not actually been tested with m != n so using with such settings
      * may have unintended consequences...

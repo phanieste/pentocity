@@ -60,6 +60,8 @@ public class LandUtil {
             allPairs = Looper2D.getSpiral( size.i - minSide, size.j - minSide, dir==Direction.OUTWARDS );
         } else if(strategy == Player.Strategy.CORNERS) {
             allPairs = Looper2D.getCorner( size.i, size.j, dir==Direction.OUTWARDS );
+        } else if(strategy == Player.Strategy.FOUR) {
+            allPairs = Looper2D.getFour( size.i, size.j, 4, dir==Direction.OUTWARDS );
         } else {
             allPairs = Looper2D.getBlocks( size.i, size.j, dir==Direction.OUTWARDS );
         }

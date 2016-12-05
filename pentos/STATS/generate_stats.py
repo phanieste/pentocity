@@ -4,7 +4,7 @@ import os ###
 RESULTS_DIR = './pentos/RESULTS/individual/' ###
 STATS_DIR = './pentos/STATS/'
 
-teamNames = ['g'+str(x) for x in range(11) if x!=7] ###
+teamNames = ['g'+str(x) for x in range(1,11) if x!=7] ###
 
 runNames = ['run'+str(x) for x in range(10)] ###
 

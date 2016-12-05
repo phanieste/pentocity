@@ -231,7 +231,7 @@ class Simulator {
 		moves.add(move);
 		gui(server, state(group, score, timer.time(), moves, gui_refresh, -1));
 	    }
-	} while (numRejects < 3);
+	} while (numRejects < 300);
 	// final GUI frame
 	if (gui) {
 	    gui_refresh = -1;

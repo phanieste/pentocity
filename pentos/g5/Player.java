@@ -20,7 +20,7 @@ import pentos.g5.util.BuildingUtil; import pentos.g5.util.Pair;
 
 public class Player implements pentos.sim.Player {
 
-    public enum Strategy {SPIRAL, CORNERS, BLOCKS};
+    public enum Strategy {SPIRAL, CORNERS, BLOCKS, FOUR};
 
     // temporary flag for which strategy to use
     private static Strategy STRATEGY;
